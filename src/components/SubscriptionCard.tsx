@@ -1,13 +1,25 @@
-import { Package, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Package } from "lucide-react";
 import { Card } from "./ui/card";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "./ui/context-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
+import { Button } from "./ui/button";
 import { differenceInDays, addDays, addMonths, addYears, addWeeks } from "date-fns";
 import type { Subscription } from "@/types/subscription";
+import { useState } from "react";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -20,6 +32,8 @@ export const SubscriptionCard = ({
   onDelete,
   onEdit,
 }: SubscriptionCardProps) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const calculateNextRenewal = (purchaseDate: string, renewalPeriod: { number: number; unit: string }) => {
     const startDate = new Date(purchaseDate);
     const today = new Date();
@@ -49,50 +63,76 @@ export const SubscriptionCard = ({
   const daysLeft = differenceInDays(nextRenewal, new Date());
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <Card className="p-4 relative">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                {subscription.logo ? (
-                  <img 
-                    src={subscription.logo} 
-                    alt={`${subscription.name} logo`}
-                    className="h-6 w-6 object-contain"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.svg";
-                      e.currentTarget.onerror = null;
-                    }}
-                  />
-                ) : (
-                  <Package className="h-6 w-6 text-gray-600" />
-                )}
+    <>
+      <Card className="p-4 relative">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gray-100 rounded-lg">
+              {subscription.logo ? (
+                <img 
+                  src={subscription.logo} 
+                  alt={`${subscription.name} logo`}
+                  className="h-6 w-6 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = "/placeholder.svg";
+                    e.currentTarget.onerror = null;
+                  }}
+                />
+              ) : (
+                <Package className="h-6 w-6 text-gray-600" />
+              )}
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="flex items-center gap-2">
+                <h3 className="font-medium">{subscription.name}</h3>
+                <span className="text-gray-600">- ${subscription.cost.toFixed(2)}</span>
               </div>
-              <div className="flex flex-col items-start">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium">{subscription.name}</h3>
-                  <span className="text-gray-600">- ${subscription.cost.toFixed(2)}</span>
-                </div>
-                <p className="text-sm text-gray-500">{daysLeft} days left</p>
-              </div>
+              <p className="text-sm text-gray-500">{daysLeft} days left</p>
             </div>
           </div>
-        </Card>
-      </ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={() => onEdit?.(subscription)}>
-          <Edit className="h-4 w-4 mr-2" />
-          Edit
-        </ContextMenuItem>
-        <ContextMenuItem 
-          onClick={() => onDelete?.(subscription.id)}
-          className="text-red-600 focus:text-red-600"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Delete
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit?.(subscription)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="text-red-600 focus:text-red-600"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the subscription for {subscription.name}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete?.(subscription.id);
+                setShowDeleteDialog(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

@@ -4,14 +4,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { BarChart3 } from "lucide-react";
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -25,11 +23,12 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
   const [cost, setCost] = useState("");
   const [type, setType] = useState("streaming");
   const [description, setDescription] = useState("");
-  const [renewalPeriod, setRenewalPeriod] = useState("monthly");
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [renewalNumber, setRenewalNumber] = useState("");
+  const [renewalUnit, setRenewalUnit] = useState("days");
 
   useEffect(() => {
     if (name) {
-      // Using Clearbit's Logo API to fetch company logos
       const logoUrl = `https://logo.clearbit.com/${name.toLowerCase().replace(/\s+/g, '')}.com`;
       setLogo(logoUrl);
     }
@@ -42,8 +41,11 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
       cost: parseFloat(cost),
       type,
       description,
-      renewalPeriod,
-      startDate: new Date().toISOString(),
+      purchaseDate,
+      renewalPeriod: {
+        number: parseInt(renewalNumber),
+        unit: renewalUnit,
+      },
     });
     onOpenChange(false);
     resetForm();
@@ -55,7 +57,9 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
     setCost("");
     setType("streaming");
     setDescription("");
-    setRenewalPeriod("monthly");
+    setPurchaseDate(new Date().toISOString().split('T')[0]);
+    setRenewalNumber("");
+    setRenewalUnit("days");
   };
 
   return (
@@ -71,7 +75,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Netflix, Spotify"
+              placeholder="Subscription Name"
             />
             {logo && (
               <div className="mt-2">
@@ -87,7 +91,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
             )}
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">Subscription Type</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger>
                 <SelectValue placeholder="Select type" />
@@ -101,14 +105,46 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="cost">Monthly Cost ($)</Label>
+            <Label htmlFor="cost">Cost</Label>
             <Input
               id="cost"
               type="number"
               value={cost}
               onChange={(e) => setCost(e.target.value)}
-              placeholder="0.00"
+              placeholder="Cost in USD"
             />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="purchaseDate">Purchase Date</Label>
+            <Input
+              id="purchaseDate"
+              type="date"
+              value={purchaseDate}
+              onChange={(e) => setPurchaseDate(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Renewal Period</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={renewalNumber}
+                onChange={(e) => setRenewalNumber(e.target.value)}
+                placeholder="Number"
+                className="flex-1"
+              />
+              <Select value={renewalUnit} onValueChange={setRenewalUnit}>
+                <SelectTrigger className="w-[110px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="days">Days</SelectItem>
+                  <SelectItem value="weeks">Weeks</SelectItem>
+                  <SelectItem value="months">Months</SelectItem>
+                  <SelectItem value="years">Years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>
@@ -116,16 +152,18 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description..."
+              placeholder="Description"
             />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="flex justify-end gap-2">
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </DialogFooter>
+          <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700">
+            Save
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

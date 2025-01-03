@@ -54,7 +54,7 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
   const speakResponse = async () => {
     try {
       setIsSpeaking(true);
-      const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM", {
+      const apiResponse = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,9 +70,9 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate speech");
+      if (!apiResponse.ok) throw new Error("Failed to generate speech");
 
-      const audioBlob = await response.blob();
+      const audioBlob = await apiResponse.blob();
       const audio = new Audio(URL.createObjectURL(audioBlob));
       audio.onended = () => setIsSpeaking(false);
       audio.play();

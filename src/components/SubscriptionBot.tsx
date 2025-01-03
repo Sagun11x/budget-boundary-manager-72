@@ -31,7 +31,8 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
   const handleSendMessage = async () => {
     try {
       setIsLoading(true);
-      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+      // Using the demo API key for testing
+      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
       const context = getSubscriptionContext();

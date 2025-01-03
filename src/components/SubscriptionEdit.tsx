@@ -53,6 +53,12 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
     onOpenChange(false);
   };
 
+  const handleRenewalUnitChange = (value: string) => {
+    if (value === "days" || value === "weeks" || value === "months" || value === "years") {
+      setRenewalUnit(value);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -98,7 +104,7 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
                 placeholder="Number"
                 className="flex-1"
               />
-              <Select value={renewalUnit} onValueChange={setRenewalUnit}>
+              <Select value={renewalUnit} onValueChange={handleRenewalUnitChange}>
                 <SelectTrigger className="w-[110px]">
                   <SelectValue />
                 </SelectTrigger>

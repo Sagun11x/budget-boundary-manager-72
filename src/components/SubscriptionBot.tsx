@@ -41,8 +41,8 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
       const prompt = `${context}\n\nUser question: ${message}\n\nPlease provide a helpful response about their subscriptions. If they ask about reducing costs, analyze their subscriptions and suggest specific ways to save money.`;
 
       const result = await model.generateContent(prompt);
-      const response = await result.response;
-      setResponse(response.text());
+      const apiResponse = await result.response;
+      setResponse(apiResponse.text());
     } catch (error) {
       console.error("Error generating response:", error);
       setResponse("Sorry, I encountered an error. Please try again later.");
@@ -58,7 +58,7 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "xi-api-key": "demo-key", // Replace with your actual API key in production
+          "xi-api-key": import.meta.env.VITE_ELEVEN_LABS_API_KEY || "", // Use the API key from environment
         },
         body: JSON.stringify({
           text: response,
@@ -70,7 +70,9 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
         }),
       });
 
-      if (!apiResponse.ok) throw new Error("Failed to generate speech");
+      if (!apiResponse.ok) {
+        throw new Error("Failed to generate speech");
+      }
 
       const audioBlob = await apiResponse.blob();
       const audio = new Audio(URL.createObjectURL(audioBlob));

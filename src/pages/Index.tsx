@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LogOut, BarChart3 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Card } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { SearchControls } from "@/components/SearchControls";
 import type { Subscription } from "@/types/subscription";
 import { indexedDBService } from "@/services/indexedDBService";
 import { firestoreService } from "@/services/firestoreService";
+import { addMonths, format, isBefore } from "date-fns";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -43,6 +44,35 @@ const Index = () => {
 
     loadSubscriptions();
   }, [user]);
+
+  const calculateAnalytics = () => {
+    const today = new Date();
+    const monthlySpend = subscriptions.reduce((acc, sub) => acc + sub.cost, 0);
+    const yearlySpend = monthlySpend * 12;
+
+    const upcomingRenewals = subscriptions
+      .filter(sub => {
+        const nextRenewal = addMonths(new Date(sub.purchaseDate), 1);
+        return isBefore(nextRenewal, addMonths(today, 1));
+      })
+      .sort((a, b) => 
+        new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime()
+      );
+
+    const expensiveSubscriptions = [...subscriptions]
+      .sort((a, b) => b.cost - a.cost)
+      .slice(0, 3);
+
+    return {
+      totalSubscriptions: subscriptions.length,
+      monthlySpend,
+      yearlySpend,
+      upcomingRenewals,
+      expensiveSubscriptions
+    };
+  };
+
+  const analytics = calculateAnalytics();
 
   const handleSaveSubscription = async (subscription: Subscription) => {
     try {
@@ -128,63 +158,94 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Subscription Manager</h1>
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowAnalytics(!showAnalytics)}
-            >
-              <BarChart3 className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" onClick={logout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+          <Button variant="ghost" onClick={logout}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showAnalytics && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-2">Total Subscriptions</h3>
-              <p className="text-3xl font-bold">{subscriptions.length}</p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-2">Monthly Spend</h3>
-              <p className="text-3xl font-bold">
-                ${subscriptions.reduce((acc, sub) => acc + sub.cost, 0).toFixed(2)}
-              </p>
-            </Card>
-            <Card className="p-6">
-              <h3 className="font-semibold text-lg mb-2">Next Renewal</h3>
-              <p className="text-3xl font-bold">-</p>
-            </Card>
-          </div>
-        )}
+        <div className="space-y-6">
+          <Button
+            variant="link"
+            onClick={() => setShowAnalytics(!showAnalytics)}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+          </Button>
 
-        <div className="mb-6">
-          <SearchControls
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            onAddClick={() => setShowModal(true)}
-          />
-        </div>
+          {showAnalytics && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="p-6">
+                <h3 className="font-semibold text-lg mb-2">Overview</h3>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Total Subscriptions: <span className="font-medium text-gray-900">{analytics.totalSubscriptions}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Monthly Spend: <span className="font-medium text-gray-900">${analytics.monthlySpend.toFixed(2)}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Yearly Spend: <span className="font-medium text-gray-900">${analytics.yearlySpend.toFixed(2)}</span>
+                  </p>
+                </div>
+              </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {getSortedSubscriptions().map((subscription) => (
-            <SubscriptionCard
-              key={subscription.id}
-              subscription={subscription}
-              onEdit={handleEditSubscription}
-              onDelete={handleDeleteSubscription}
+              <Card className="p-6">
+                <h3 className="font-semibold text-lg mb-2">Upcoming Renewals</h3>
+                <div className="space-y-2">
+                  {analytics.upcomingRenewals.map(sub => (
+                    <div key={sub.id} className="text-sm">
+                      <span className="font-medium">{sub.name}</span>
+                      <span className="text-gray-600"> - ${sub.cost.toFixed(2)}</span>
+                      <p className="text-xs text-gray-500">
+                        Renews: {format(addMonths(new Date(sub.purchaseDate), 1), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                  ))}
+                  {analytics.upcomingRenewals.length === 0 && (
+                    <p className="text-sm text-gray-500">No upcoming renewals in the next month</p>
+                  )}
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-semibold text-lg mb-2">Most Expensive</h3>
+                <div className="space-y-2">
+                  {analytics.expensiveSubscriptions.map(sub => (
+                    <div key={sub.id} className="text-sm">
+                      <span className="font-medium">{sub.name}</span>
+                      <span className="text-gray-600"> - ${sub.cost.toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <SearchControls
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              onAddClick={() => setShowModal(true)}
             />
-          ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {getSortedSubscriptions().map((subscription) => (
+                <SubscriptionCard
+                  key={subscription.id}
+                  subscription={subscription}
+                  onEdit={handleEditSubscription}
+                  onDelete={handleDeleteSubscription}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         <SubscriptionModal

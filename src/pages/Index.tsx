@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { LogOut, Plus, Search, BarChart3 } from "lucide-react";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -14,26 +15,106 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Subscription } from "@/types/subscription";
+import { indexedDBService } from "@/services/indexedDBService";
+import { firestoreService } from "@/services/firestoreService";
 
 const Index = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
-  const handleSaveSubscription = (subscription: Subscription) => {
-    setSubscriptions([...subscriptions, subscription]);
+  useEffect(() => {
+    const loadSubscriptions = async () => {
+      try {
+        // First load from IndexedDB for instant display
+        const localSubs = await indexedDBService.getAll();
+        setSubscriptions(localSubs);
+
+        // Then fetch from Firestore and sync
+        if (user) {
+          const remoteSubs = await firestoreService.getAll(user.uid);
+          setSubscriptions(remoteSubs);
+          await indexedDBService.sync(remoteSubs);
+        }
+      } catch (error) {
+        console.error('Error loading subscriptions:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load subscriptions",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadSubscriptions();
+  }, [user]);
+
+  const handleSaveSubscription = async (subscription: Subscription) => {
+    try {
+      if (user) {
+        const subscriptionWithUser = { ...subscription, userId: user.uid };
+        const id = await firestoreService.add(subscriptionWithUser);
+        const finalSubscription = { ...subscriptionWithUser, id };
+        await indexedDBService.add(finalSubscription);
+        setSubscriptions([...subscriptions, finalSubscription]);
+        toast({
+          title: "Success",
+          description: "Subscription added successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Error saving subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save subscription",
+        variant: "destructive",
+      });
+    }
     setShowModal(false);
   };
 
-  const handleEditSubscription = (subscription: Subscription) => {
-    console.log("Edit subscription:", subscription);
+  const handleEditSubscription = async (subscription: Subscription) => {
+    try {
+      await firestoreService.update(subscription);
+      await indexedDBService.update(subscription);
+      setSubscriptions(subscriptions.map(sub => 
+        sub.id === subscription.id ? subscription : sub
+      ));
+      toast({
+        title: "Success",
+        description: "Subscription updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteSubscription = (id: string) => {
-    setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+  const handleDeleteSubscription = async (id: string) => {
+    try {
+      await firestoreService.delete(id);
+      await indexedDBService.delete(id);
+      setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+      toast({
+        title: "Success",
+        description: "Subscription deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription",
+        variant: "destructive",
+      });
+    }
   };
 
   const getSortedSubscriptions = () => {

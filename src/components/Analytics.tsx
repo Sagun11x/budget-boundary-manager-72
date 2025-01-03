@@ -21,23 +21,18 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
         new Date(a.purchaseDate).getTime() - new Date(b.purchaseDate).getTime()
       );
 
-    const expensiveSubscriptions = [...subscriptions]
-      .sort((a, b) => b.cost - a.cost)
-      .slice(0, 3);
-
     return {
       totalSubscriptions: subscriptions.length,
       monthlySpend,
       yearlySpend,
       upcomingRenewals,
-      expensiveSubscriptions
     };
   };
 
   const analytics = calculateAnalytics();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <Card className="p-6">
         <h3 className="font-semibold text-lg mb-4">Overview</h3>
         <div className="space-y-3">
@@ -73,18 +68,6 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
           {analytics.upcomingRenewals.length === 0 && (
             <p className="text-sm text-gray-500">No upcoming renewals in the next month</p>
           )}
-        </div>
-      </Card>
-
-      <Card className="p-6">
-        <h3 className="font-semibold text-lg mb-4">Most Expensive</h3>
-        <div className="space-y-3">
-          {analytics.expensiveSubscriptions.map(sub => (
-            <div key={sub.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-              <span className="font-medium">{sub.name}</span>
-              <span className="text-gray-600">${sub.cost.toFixed(2)}</span>
-            </div>
-          ))}
         </div>
       </Card>
     </div>

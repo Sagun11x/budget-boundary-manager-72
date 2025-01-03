@@ -21,7 +21,7 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
   const [description, setDescription] = useState(subscription?.description || "");
   const [purchaseDate, setPurchaseDate] = useState(subscription?.purchaseDate || new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState(subscription?.renewalPeriod.number.toString() || "");
-  const [renewalUnit, setRenewalUnit] = useState(subscription?.renewalPeriod.unit || "months");
+  const [renewalUnit, setRenewalUnit] = useState<"days" | "weeks" | "months" | "years">(subscription?.renewalPeriod.unit || "months");
 
   useEffect(() => {
     if (subscription) {
@@ -47,7 +47,7 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
       purchaseDate,
       renewalPeriod: {
         number: parseInt(renewalNumber),
-        unit: renewalUnit as "days" | "weeks" | "months" | "years",
+        unit: renewalUnit,
       },
     });
     onOpenChange(false);

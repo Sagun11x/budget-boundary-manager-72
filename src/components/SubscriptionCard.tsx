@@ -2,7 +2,7 @@ import { Package } from "lucide-react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { MoreHorizontal } from "lucide-react";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, addDays, addMonths, addYears, addWeeks } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
 interface SubscriptionCardProps {
@@ -16,10 +16,33 @@ export const SubscriptionCard = ({
   onDelete,
   onEdit,
 }: SubscriptionCardProps) => {
-  const daysLeft = differenceInDays(
-    new Date(subscription.purchaseDate),
-    new Date()
-  );
+  const calculateNextRenewal = (purchaseDate: string, renewalPeriod: { number: number; unit: string }) => {
+    const startDate = new Date(purchaseDate);
+    const today = new Date();
+    let nextRenewal = startDate;
+
+    while (nextRenewal <= today) {
+      switch (renewalPeriod.unit) {
+        case "days":
+          nextRenewal = addDays(nextRenewal, renewalPeriod.number);
+          break;
+        case "weeks":
+          nextRenewal = addWeeks(nextRenewal, renewalPeriod.number);
+          break;
+        case "months":
+          nextRenewal = addMonths(nextRenewal, renewalPeriod.number);
+          break;
+        case "years":
+          nextRenewal = addYears(nextRenewal, renewalPeriod.number);
+          break;
+      }
+    }
+
+    return nextRenewal;
+  };
+
+  const nextRenewal = calculateNextRenewal(subscription.purchaseDate, subscription.renewalPeriod);
+  const daysLeft = differenceInDays(nextRenewal, new Date());
 
   return (
     <Card className="p-4 relative group">
@@ -45,7 +68,7 @@ export const SubscriptionCard = ({
               <h3 className="font-medium">{subscription.name}</h3>
               <span className="text-gray-600">- ${subscription.cost.toFixed(2)}</span>
             </div>
-            <p className="text-sm text-gray-500">{Math.abs(daysLeft)} days left</p>
+            <p className="text-sm text-gray-500">{daysLeft} days left</p>
           </div>
         </div>
         <Button

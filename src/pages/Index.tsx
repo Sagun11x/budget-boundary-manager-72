@@ -32,7 +32,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-900">Subscription Manager</h1>
           <div className="flex items-center gap-4">
             <Button
@@ -52,7 +52,7 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {showAnalytics && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">Total Subscriptions</h3>
               <p className="text-3xl font-bold">{subscriptions.length}</p>
@@ -70,8 +70,8 @@ const Index = () => {
           </div>
         )}
 
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative flex-1 max-w-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+          <div className="relative w-full sm:max-w-lg">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
@@ -81,7 +81,7 @@ const Index = () => {
               className="pl-10"
             />
           </div>
-          <div className="flex items-center gap-4 ml-4">
+          <div className="flex flex-wrap items-center gap-4">
             <Button variant="outline">Sort by Renewal Date</Button>
             <Button variant="outline">Sort by Type</Button>
             <Button onClick={() => setShowModal(true)}>
@@ -91,7 +91,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {subscriptions.map((subscription) => (
             <SubscriptionCard
               key={subscription.id}

@@ -1,20 +1,32 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LogOut, Plus, Search, BarChart3 } from "lucide-react";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { Card } from "@/components/ui/card";
+import type { Subscription } from "@/types/subscription";
 
 const Index = () => {
   const { logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
-  const handleSaveSubscription = (subscription: any) => {
-    console.log("Saving subscription:", subscription);
-    // Here you would typically save to your backend/Firebase
+  const handleSaveSubscription = (subscription: Subscription) => {
+    setSubscriptions([...subscriptions, subscription]);
+    setShowModal(false);
+  };
+
+  const handleEditSubscription = (subscription: Subscription) => {
+    // Implement edit functionality
+    console.log("Edit subscription:", subscription);
+  };
+
+  const handleDeleteSubscription = (id: string) => {
+    setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
   };
 
   return (
@@ -43,11 +55,13 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">Total Subscriptions</h3>
-              <p className="text-3xl font-bold">0</p>
+              <p className="text-3xl font-bold">{subscriptions.length}</p>
             </Card>
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">Monthly Spend</h3>
-              <p className="text-3xl font-bold">$0</p>
+              <p className="text-3xl font-bold">
+                ${subscriptions.reduce((acc, sub) => acc + sub.cost, 0).toFixed(2)}
+              </p>
             </Card>
             <Card className="p-6">
               <h3 className="font-semibold text-lg mb-2">Next Renewal</h3>
@@ -67,14 +81,25 @@ const Index = () => {
               className="pl-10"
             />
           </div>
-          <Button className="ml-4" onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Subscription
-          </Button>
+          <div className="flex items-center gap-4 ml-4">
+            <Button variant="outline">Sort by Renewal Date</Button>
+            <Button variant="outline">Sort by Type</Button>
+            <Button onClick={() => setShowModal(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Subscription
+            </Button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Subscription cards will be rendered here */}
+        <div className="grid grid-cols-1 gap-4">
+          {subscriptions.map((subscription) => (
+            <SubscriptionCard
+              key={subscription.id}
+              subscription={subscription}
+              onEdit={handleEditSubscription}
+              onDelete={handleDeleteSubscription}
+            />
+          ))}
         </div>
 
         <SubscriptionModal

@@ -6,6 +6,13 @@ import { LogOut, Plus, Search, BarChart3 } from "lucide-react";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Subscription } from "@/types/subscription";
 
 const Index = () => {
@@ -13,6 +20,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [sortBy, setSortBy] = useState("nearest");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
   const handleSaveSubscription = (subscription: Subscription) => {
@@ -21,12 +29,28 @@ const Index = () => {
   };
 
   const handleEditSubscription = (subscription: Subscription) => {
-    // Implement edit functionality
     console.log("Edit subscription:", subscription);
   };
 
   const handleDeleteSubscription = (id: string) => {
     setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+  };
+
+  const getSortedSubscriptions = () => {
+    return [...subscriptions].sort((a, b) => {
+      switch (sortBy) {
+        case "nearest":
+          const aNextRenewal = new Date(a.purchaseDate);
+          const bNextRenewal = new Date(b.purchaseDate);
+          return aNextRenewal.getTime() - bNextRenewal.getTime();
+        case "expensive":
+          return b.cost - a.cost;
+        case "cheapest":
+          return a.cost - b.cost;
+        default:
+          return 0;
+      }
+    });
   };
 
   return (
@@ -71,28 +95,36 @@ const Index = () => {
         )}
 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <div className="relative w-full sm:max-w-lg">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Search subscriptions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex w-full sm:max-w-lg gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search subscriptions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nearest">Nearest Renewal</SelectItem>
+                <SelectItem value="expensive">Most Expensive</SelectItem>
+                <SelectItem value="cheapest">Cheapest First</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <Button variant="outline">Sort by Renewal Date</Button>
-            <Button variant="outline">Sort by Type</Button>
-            <Button onClick={() => setShowModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Subscription
-            </Button>
-          </div>
+          <Button onClick={() => setShowModal(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Subscription
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {subscriptions.map((subscription) => (
+          {getSortedSubscriptions().map((subscription) => (
             <SubscriptionCard
               key={subscription.id}
               subscription={subscription}

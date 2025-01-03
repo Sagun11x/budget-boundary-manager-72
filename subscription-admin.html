@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Admin Panel</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .subscription-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        .subscription-info {
+            margin-bottom: 15px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+        .button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .approve-btn {
+            background-color: #22c55e;
+            color: white;
+        }
+        .reject-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background-color: #4b5563;
+            color: white;
+            border-radius: 4px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Subscription Admin Panel</h1>
+        </div>
+        <div id="subscriptions-list"></div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAY1l9DKJmaUDwliCZN1UgnpBsrzYkYGUY",
+            authDomain: "adova-32393.firebaseapp.com",
+            databaseURL: "https://adova-32393-default-rtdb.firebaseio.com",
+            projectId: "adova-32393",
+            storageBucket: "adova-32393.firebasestorage.app",
+            messagingSenderId: "671682678254",
+            appId: "1:671682678254:web:44dafed613bf19e901d2ff",
+            measurementId: "G-LXRC5PJ4LR"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Toast notification function
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, duration);
+        }
+
+        // Format date
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        // Handle subscription action
+        async function handleSubscriptionAction(subscriptionId, action) {
+            try {
+                await db.collection('subscriptions').doc(subscriptionId).update({
+                    status: action,
+                    updatedAt: new Date().toISOString()
+                });
+                showToast(`Subscription ${action} successfully`);
+                loadSubscriptions(); // Refresh the list
+            } catch (error) {
+                console.error('Error updating subscription:', error);
+                showToast('Error updating subscription');
+            }
+        }
+
+        // Create subscription card
+        function createSubscriptionCard(subscription) {
+            const card = document.createElement('div');
+            card.className = 'subscription-card';
+            card.innerHTML = `
+                <div class="subscription-info">
+                    <h3>User Email: ${subscription.userEmail}</h3>
+                    <p>Plan: ${subscription.planType}</p>
+                    <p>Cost: $${subscription.cost}</p>
+                    <p>Requested: ${formatDate(subscription.createdAt)}</p>
+                </div>
+                <div class="button-group">
+                    <button 
+                        class="button approve-btn" 
+                        onclick="handleSubscriptionAction('${subscription.id}', 'approved')"
+                    >
+                        Approve
+                    </button>
+                    <button 
+                        class="button reject-btn" 
+                        onclick="handleSubscriptionAction('${subscription.id}', 'rejected')"
+                    >
+                        Reject
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Load subscriptions
+        async function loadSubscriptions() {
+            const subscriptionsList = document.getElementById('subscriptions-list');
+            subscriptionsList.innerHTML = ''; // Clear existing content
+
+            try {
+                const snapshot = await db.collection('subscriptions')
+                    .where('status', '==', 'pending')
+                    .get();
+
+                if (snapshot.empty) {
+                    subscriptionsList.innerHTML = '<p>No pending subscriptions</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const subscription = { id: doc.id, ...doc.data() };
+                    const card = createSubscriptionCard(subscription);
+                    subscriptionsList.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error loading subscriptions:', error);
+                subscriptionsList.innerHTML = '<p>Error loading subscriptions</p>';
+            }
+        }
+
+        // Initial load
+        loadSubscriptions();
+    </script>
+</body>
+</html>

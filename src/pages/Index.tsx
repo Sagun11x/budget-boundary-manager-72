@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -22,6 +22,35 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("nearest");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
+
+  // Load subscriptions on mount
+  useEffect(() => {
+    const loadSubscriptions = async () => {
+      try {
+        if (user) {
+          // First try to load from IndexedDB for instant display
+          const localSubs = await indexedDBService.getAll();
+          if (localSubs.length > 0) {
+            setSubscriptions(localSubs);
+          }
+
+          // Then fetch from Firestore and sync
+          const firestoreSubs = await firestoreService.getAll(user.uid);
+          await indexedDBService.sync(firestoreSubs);
+          setSubscriptions(firestoreSubs);
+        }
+      } catch (error) {
+        console.error('Error loading subscriptions:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load subscriptions",
+          variant: "destructive",
+        });
+      }
+    };
+
+    loadSubscriptions();
+  }, [user, toast]);
 
   const handleSaveSubscription = async (subscription: Subscription) => {
     try {

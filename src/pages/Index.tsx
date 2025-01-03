@@ -12,6 +12,7 @@ import { firestoreService } from "@/services/firestoreService";
 import { Analytics } from "@/components/Analytics";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { SubscriptionBot } from "@/components/SubscriptionBot";
+import { ProPlanModal } from "@/components/ProPlanModal";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -19,6 +20,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
@@ -148,13 +150,22 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          <Button
-            variant="link"
-            onClick={() => setShowAnalytics(!showAnalytics)}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            {showAnalytics ? "Hide Analytics" : "Show Analytics"}
-          </Button>
+          <div className="flex justify-between items-center">
+            <Button
+              variant="link"
+              onClick={() => setShowAnalytics(!showAnalytics)}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowProModal(true)}
+              className="text-sm"
+            >
+              Go Pro 🚀
+            </Button>
+          </div>
 
           {showAnalytics && <Analytics subscriptions={subscriptions} />}
 
@@ -191,6 +202,11 @@ const Index = () => {
           open={!!editingSubscription}
           onOpenChange={(open) => !open && setEditingSubscription(null)}
           onSave={handleEditSubscription}
+        />
+
+        <ProPlanModal
+          open={showProModal}
+          onOpenChange={setShowProModal}
         />
 
         <SubscriptionBot subscriptions={subscriptions} />

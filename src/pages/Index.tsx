@@ -13,10 +13,12 @@ import { Analytics } from "@/components/Analytics";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { SubscriptionBot } from "@/components/SubscriptionBot";
 import { ProPlanModal } from "@/components/ProPlanModal";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 const Index = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const { isPro, isLoading: isProStatusLoading } = useSubscriptionStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -30,13 +32,11 @@ const Index = () => {
     const loadSubscriptions = async () => {
       try {
         if (user) {
-          // First try to load from IndexedDB for instant display
           const localSubs = await indexedDBService.getAll();
           if (localSubs.length > 0) {
             setSubscriptions(localSubs);
           }
 
-          // Then fetch from Firestore and sync
           const firestoreSubs = await firestoreService.getAll(user.uid);
           await indexedDBService.sync(firestoreSubs);
           setSubscriptions(firestoreSubs);
@@ -55,6 +55,11 @@ const Index = () => {
   }, [user, toast]);
 
   const handleSaveSubscription = async (subscription: Subscription) => {
+    if (!isPro && subscriptions.length >= 5) {
+      setShowProModal(true);
+      return;
+    }
+
     try {
       if (user) {
         const subscriptionWithUser = { ...subscription, userId: user.uid };
@@ -136,6 +141,15 @@ const Index = () => {
     });
   };
 
+  const showUpgradePrompt = () => {
+    setShowProModal(true);
+    toast({
+      title: "Pro Feature",
+      description: "Upgrade to Pro to unlock this feature!",
+      variant: "default",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow">
@@ -153,24 +167,26 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <Button
               variant="link"
-              onClick={() => setShowAnalytics(!showAnalytics)}
+              onClick={() => isPro ? setShowAnalytics(!showAnalytics) : showUpgradePrompt()}
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               {showAnalytics ? "Hide Analytics" : "Show Analytics"}
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => setShowProModal(true)}
-              className="text-sm relative group"
-            >
-              <span className="relative inline-block animate-pulse">
-                <span className="absolute -inset-1 bg-primary/20 rounded-lg blur-sm group-hover:bg-primary/30 transition-all duration-300"></span>
-                <span className="relative text-primary font-semibold">Go Pro</span>
-              </span>
-            </Button>
+            {!isPro && (
+              <Button
+                variant="ghost"
+                onClick={() => setShowProModal(true)}
+                className="text-sm relative group"
+              >
+                <span className="relative inline-block animate-pulse">
+                  <span className="absolute -inset-1 bg-primary/20 rounded-lg blur-sm group-hover:bg-primary/30 transition-all duration-300"></span>
+                  <span className="relative text-primary font-semibold">Go Pro</span>
+                </span>
+              </Button>
+            )}
           </div>
 
-          {showAnalytics && <Analytics subscriptions={subscriptions} />}
+          {isPro && showAnalytics && <Analytics subscriptions={subscriptions} />}
 
           <div className="space-y-4">
             <SearchControls
@@ -178,7 +194,13 @@ const Index = () => {
               setSearchTerm={setSearchTerm}
               sortBy={sortBy}
               setSortBy={setSortBy}
-              onAddClick={() => setShowModal(true)}
+              onAddClick={() => {
+                if (!isPro && subscriptions.length >= 5) {
+                  showUpgradePrompt();
+                } else {
+                  setShowModal(true);
+                }
+              }}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -212,7 +234,7 @@ const Index = () => {
           onOpenChange={setShowProModal}
         />
 
-        <SubscriptionBot subscriptions={subscriptions} />
+        {isPro && <SubscriptionBot subscriptions={subscriptions} />}
       </main>
     </div>
   );

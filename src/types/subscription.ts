@@ -1,7 +1,7 @@
 export interface Subscription {
   id: string;
   name: string;
-  type: string;
+  logo?: string;
   cost: number;
   purchaseDate: string;
   renewalPeriod: {

@@ -21,7 +21,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
   const [name, setName] = useState("");
   const [logo, setLogo] = useState("");
   const [cost, setCost] = useState("");
-  const [type, setType] = useState("streaming");
   const [description, setDescription] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState("");
@@ -39,7 +38,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
       name,
       logo,
       cost: parseFloat(cost),
-      type,
       description,
       purchaseDate,
       renewalPeriod: {
@@ -55,7 +53,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
     setName("");
     setLogo("");
     setCost("");
-    setType("streaming");
     setDescription("");
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setRenewalNumber("");
@@ -89,20 +86,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
                 />
               </div>
             )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="type">Subscription Type</Label>
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="streaming">Streaming</SelectItem>
-                <SelectItem value="software">Software</SelectItem>
-                <SelectItem value="gaming">Gaming</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>

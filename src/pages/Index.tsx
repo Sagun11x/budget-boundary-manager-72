@@ -159,11 +159,14 @@ const Index = () => {
               {showAnalytics ? "Hide Analytics" : "Show Analytics"}
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={() => setShowProModal(true)}
-              className="text-sm"
+              className="text-sm relative group"
             >
-              Go Pro 🚀
+              <span className="relative inline-block animate-pulse">
+                <span className="absolute -inset-1 bg-primary/20 rounded-lg blur-sm group-hover:bg-primary/30 transition-all duration-300"></span>
+                <span className="relative text-primary font-semibold">Go Pro</span>
+              </span>
             </Button>
           </div>
 

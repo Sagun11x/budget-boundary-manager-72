@@ -11,6 +11,7 @@ import { indexedDBService } from "@/services/indexedDBService";
 import { firestoreService } from "@/services/firestoreService";
 import { Analytics } from "@/components/Analytics";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
+import { SubscriptionBot } from "@/components/SubscriptionBot";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -162,6 +163,8 @@ const Index = () => {
           onOpenChange={(open) => !open && setEditingSubscription(null)}
           onSave={handleEditSubscription}
         />
+
+        <SubscriptionBot subscriptions={subscriptions} />
       </main>
     </div>
   );

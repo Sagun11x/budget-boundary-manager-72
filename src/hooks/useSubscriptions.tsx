@@ -41,6 +41,7 @@ export const useSubscriptions = () => {
   const handleSaveSubscription = async (subscription: Subscription) => {
     if (!user) return;
     
+    setIsLoading(true);
     try {
       console.log("Saving subscription:", subscription);
       const subscriptionWithUser = { ...subscription, userId: user.uid };
@@ -55,10 +56,13 @@ export const useSubscriptions = () => {
     } catch (error) {
       console.error('Error saving subscription:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleEditSubscription = async (subscription: Subscription) => {
+    setIsLoading(true);
     try {
       console.log("Editing subscription:", subscription);
       await firestoreService.update(subscription);
@@ -71,10 +75,13 @@ export const useSubscriptions = () => {
     } catch (error) {
       console.error('Error updating subscription:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDeleteSubscription = async (id: string) => {
+    setIsLoading(true);
     try {
       console.log("Deleting subscription:", id);
       await firestoreService.delete(id);
@@ -86,6 +93,8 @@ export const useSubscriptions = () => {
     } catch (error) {
       console.error('Error deleting subscription:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 

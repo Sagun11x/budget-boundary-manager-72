@@ -29,36 +29,46 @@ const Index = () => {
     }
   }, [user, loadSubscriptions]);
 
-  const handleOperation = async (operation: () => Promise<any>) => {
+  const onSave = async (subscription: any): Promise<void> => {
     try {
-      await operation();
-      await loadSubscriptions(); // Refresh data after operation
+      await handleSaveSubscription(subscription);
+      await loadSubscriptions();
     } catch (error) {
-      console.error("Operation failed:", error);
+      console.error("Save operation failed:", error);
       toast({
         title: "Error",
-        description: "Operation failed. Please try again.",
+        description: "Failed to save subscription. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  const onSave = async (subscription: any): Promise<void> => {
-    await handleOperation(async () => {
-      await handleSaveSubscription(subscription);
-    });
-  };
-
   const onEdit = async (subscription: any): Promise<void> => {
-    await handleOperation(async () => {
+    try {
       await handleEditSubscription(subscription);
-    });
+      await loadSubscriptions();
+    } catch (error) {
+      console.error("Edit operation failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onDelete = async (id: string): Promise<void> => {
-    await handleOperation(async () => {
+    try {
       await handleDeleteSubscription(id);
-    });
+      await loadSubscriptions();
+    } catch (error) {
+      console.error("Delete operation failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

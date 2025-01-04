@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, FileText, Facebook, Twitter, Instagram, LifeBuoy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface InfoModalProps {
   isOpen: boolean;
@@ -8,7 +9,14 @@ interface InfoModalProps {
 }
 
 export const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
+  const navigate = useNavigate();
+  
   if (!isOpen) return null;
+
+  const handleViewMore = () => {
+    onClose();
+    navigate('/info');
+  };
 
   return (
     <Card className="fixed bottom-20 right-4 w-80 p-4 shadow-lg z-50">
@@ -44,6 +52,14 @@ export const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
           <LifeBuoy className="h-5 w-5" />
           <a href="#" className="text-sm hover:underline">Support Center</a>
         </div>
+
+        <Button 
+          variant="outline" 
+          className="w-full mt-2"
+          onClick={handleViewMore}
+        >
+          View More Information
+        </Button>
       </div>
     </Card>
   );

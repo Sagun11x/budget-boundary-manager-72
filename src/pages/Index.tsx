@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { useToast } from "@/hooks/use-toast";
 import { SearchControls } from "@/components/SearchControls";
-import type { Subscription } from "@/types/subscription";
 import { indexedDBService } from "@/services/indexedDBService";
 import { firestoreService } from "@/services/firestoreService";
 import { Analytics } from "@/components/Analytics";
@@ -13,9 +11,9 @@ import { ProPlanModal } from "@/components/ProPlanModal";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { Header } from "@/components/Header";
 import { SubscriptionList } from "@/components/SubscriptionList";
-import { ProFeatureButton } from "@/components/ProFeatureButton";
-import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
+import { SubscriptionModal } from "@/components/ui/subscription-modal";
+import { SubscriptionActions } from "@/components/SubscriptionActions";
+import { ProFeatureAlert } from "@/components/ProFeatureAlert";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -26,8 +24,9 @@ const Index = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [editingSubscription, setEditingSubscription] = useState(null);
+  const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
 
   useEffect(() => {
     const loadSubscriptions = async () => {
@@ -55,14 +54,9 @@ const Index = () => {
     loadSubscriptions();
   }, [user, toast]);
 
-  const handleSaveSubscription = async (subscription: Subscription) => {
+  const handleSaveSubscription = async (subscription) => {
     if (!isPro && subscriptions.length >= 5) {
-      toast({
-        title: "Subscription Limit Reached",
-        description: "Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!",
-        variant: "destructive",
-      });
-      setShowProModal(true);
+      setShowSubscriptionLimitAlert(true);
       return;
     }
 
@@ -89,7 +83,7 @@ const Index = () => {
     setShowModal(false);
   };
 
-  const handleEditSubscription = async (subscription: Subscription) => {
+  const handleEditSubscription = async (subscription) => {
     try {
       await firestoreService.update(subscription);
       await indexedDBService.update(subscription);
@@ -111,7 +105,7 @@ const Index = () => {
     setEditingSubscription(null);
   };
 
-  const handleDeleteSubscription = async (id: string) => {
+  const handleDeleteSubscription = async (id) => {
     try {
       await firestoreService.delete(id);
       await indexedDBService.delete(id);
@@ -153,38 +147,12 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            {isPro ? (
-              <Button
-                variant="link"
-                onClick={() => setShowAnalytics(!showAnalytics)}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                {showAnalytics ? "Hide Analytics" : "Show Analytics"}
-              </Button>
-            ) : (
-              <ProFeatureButton
-                onClick={() => setShowProModal(true)}
-                variant="link"
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                Show Analytics
-              </ProFeatureButton>
-            )}
-            
-            {!isPro && (
-              <Button
-                variant="ghost"
-                onClick={() => setShowProModal(true)}
-                className="text-sm relative group"
-              >
-                <span className="relative inline-block animate-pulse">
-                  <span className="absolute -inset-1 bg-primary/20 rounded-lg blur-sm group-hover:bg-primary/30 transition-all duration-300"></span>
-                  <span className="relative text-primary font-semibold">Go Pro</span>
-                </span>
-              </Button>
-            )}
-          </div>
+          <SubscriptionActions
+            isPro={isPro}
+            subscriptions={subscriptions}
+            showAnalytics={showAnalytics}
+            setShowAnalytics={setShowAnalytics}
+          />
 
           {isPro && showAnalytics && <Analytics subscriptions={subscriptions} />}
 
@@ -196,12 +164,7 @@ const Index = () => {
               setSortBy={setSortBy}
               onAddClick={() => {
                 if (!isPro && subscriptions.length >= 5) {
-                  toast({
-                    title: "Subscription Limit Reached",
-                    description: "Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!",
-                    variant: "destructive",
-                  });
-                  setShowProModal(true);
+                  setShowSubscriptionLimitAlert(true);
                 } else {
                   setShowModal(true);
                 }
@@ -229,31 +192,14 @@ const Index = () => {
           onSave={handleEditSubscription}
         />
 
-        <ProPlanModal
-          open={showProModal}
-          onOpenChange={setShowProModal}
+        <ProFeatureAlert
+          open={showSubscriptionLimitAlert}
+          onOpenChange={setShowSubscriptionLimitAlert}
+          title="Subscription Limit Reached"
+          description="Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!"
         />
 
-        {isPro ? (
-          <SubscriptionBot subscriptions={subscriptions} />
-        ) : (
-          subscriptions.length > 0 && (
-            <Button
-              onClick={() => {
-                toast({
-                  title: "AI Assistant is a Pro Feature",
-                  description: "Upgrade to Pro to get personalized subscription insights from our AI assistant!",
-                  variant: "destructive",
-                });
-                setShowProModal(true);
-              }}
-              className="fixed bottom-4 right-4 rounded-full p-4"
-              variant="default"
-            >
-              <MessageCircle className="h-6 w-6" />
-            </Button>
-          )
-        )}
+        {isPro && <SubscriptionBot subscriptions={subscriptions} />}
       </main>
     </div>
   );

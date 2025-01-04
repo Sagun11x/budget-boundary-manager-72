@@ -139,6 +139,7 @@ export const SubscriptionContent = ({
         open={showModal}
         onOpenChange={setShowModal}
         onSave={onSave}
+        isPro={isPro}
       />
 
       <SubscriptionEdit

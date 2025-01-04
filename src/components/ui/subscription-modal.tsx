@@ -15,9 +15,10 @@ interface SubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (subscription: any) => void;
+  isPro?: boolean;
 }
 
-export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionModalProps) {
+export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }: SubscriptionModalProps) {
   const [name, setName] = useState("");
   const [logo, setLogo] = useState("");
   const [cost, setCost] = useState("");
@@ -116,24 +117,28 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
               </Select>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            className="flex items-center gap-2 w-full justify-center"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-          >
-            Advanced Options
-            {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-          {showAdvanced && (
-            <div className="grid gap-2">
-              <Label htmlFor="logo">Custom Logo URL</Label>
-              <Input
-                id="logo"
-                value={logo}
-                onChange={(e) => setLogo(e.target.value)}
-                placeholder="https://example.com/logo.png"
-              />
-            </div>
+          {isPro && (
+            <>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 w-full justify-center"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                Advanced Options
+                {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+              {showAdvanced && (
+                <div className="grid gap-2">
+                  <Label htmlFor="logo">Custom Logo URL</Label>
+                  <Input
+                    id="logo"
+                    value={logo}
+                    onChange={(e) => setLogo(e.target.value)}
+                    placeholder="https://example.com/logo.png"
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
         <div className="flex justify-end gap-2">

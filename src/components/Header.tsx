@@ -30,15 +30,6 @@ export const Header = ({
           </div>
           
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              onClick={logout}
-              className="hidden md:flex"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-
             <MobileMenu
               logout={logout}
               isPro={isPro}

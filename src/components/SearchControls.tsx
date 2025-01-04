@@ -45,16 +45,18 @@ export const SearchControls = ({
         </Button>
       </div>
       {!hideSortBy && (
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="nearest">Nearest Renewal</SelectItem>
-            <SelectItem value="expensive">Most Expensive</SelectItem>
-            <SelectItem value="cheapest">Cheapest First</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="hidden md:block">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nearest">Nearest Renewal</SelectItem>
+              <SelectItem value="expensive">Most Expensive</SelectItem>
+              <SelectItem value="cheapest">Cheapest First</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       )}
     </div>
   );

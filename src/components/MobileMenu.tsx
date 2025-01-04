@@ -32,10 +32,17 @@ export const MobileMenu = ({
   onInfoClick,
   onProClick,
 }: MobileMenuProps) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setIsOpen(false);
+  };
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button variant="ghost" size="icon">
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
@@ -46,7 +53,7 @@ export const MobileMenu = ({
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Sort Subscriptions</h3>
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
@@ -61,7 +68,10 @@ export const MobileMenu = ({
           <div className="space-y-2">
             <Button
               variant="ghost"
-              onClick={onInfoClick}
+              onClick={() => {
+                onInfoClick();
+                setIsOpen(false);
+              }}
               className="w-full justify-start"
             >
               Information
@@ -70,7 +80,10 @@ export const MobileMenu = ({
             {!isPro ? (
               <Button
                 variant="ghost"
-                onClick={onProClick}
+                onClick={() => {
+                  onProClick();
+                  setIsOpen(false);
+                }}
                 className="w-full justify-start"
               >
                 <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent font-semibold">
@@ -91,7 +104,10 @@ export const MobileMenu = ({
 
             <Button
               variant="ghost"
-              onClick={logout}
+              onClick={() => {
+                logout();
+                setIsOpen(false);
+              }}
               className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
             >
               Logout

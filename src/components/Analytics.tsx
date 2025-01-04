@@ -37,6 +37,18 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
     return daysUntilRenewal;
   };
 
+  const calculateRenewalRatio = (subscription: Subscription) => {
+    const purchaseDate = new Date(subscription.purchaseDate);
+    const today = new Date();
+    const nextRenewal = addMonths(purchaseDate, 1);
+    
+    const totalPeriodDays = differenceInDays(nextRenewal, purchaseDate);
+    const daysElapsed = differenceInDays(today, purchaseDate);
+    const ratio = Math.max(0, Math.min(100, (daysElapsed / totalPeriodDays) * 100));
+    
+    return `${Math.round(ratio)}%`;
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <Card className="p-6">
@@ -66,9 +78,14 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
                 <span className="font-medium">{sub.name}</span>
                 <span className="text-gray-600">${sub.cost.toFixed(2)}</span>
               </div>
-              <p className="text-sm text-gray-500">
-                Renews in {getRenewalDays(sub.purchaseDate)} days
-              </p>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-500">
+                  Renews in {getRenewalDays(sub.purchaseDate)} days
+                </p>
+                <p className="text-sm text-gray-500">
+                  Period used: {calculateRenewalRatio(sub)}
+                </p>
+              </div>
             </div>
           ))}
           {analytics.upcomingRenewals.length === 0 && (

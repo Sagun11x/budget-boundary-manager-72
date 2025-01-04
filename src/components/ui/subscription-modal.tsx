@@ -4,13 +4,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -22,7 +20,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
   const [name, setName] = useState("");
   const [logo, setLogo] = useState("");
   const [cost, setCost] = useState("");
-  const [description, setDescription] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState("");
   const [renewalUnit, setRenewalUnit] = useState("days");
@@ -39,7 +36,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
       name,
       logo,
       cost: parseFloat(cost),
-      description,
       purchaseDate,
       renewalPeriod: {
         number: parseInt(renewalNumber),
@@ -54,7 +50,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
     setName("");
     setLogo("");
     setCost("");
-    setDescription("");
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setRenewalNumber("");
     setRenewalUnit("days");
@@ -62,12 +57,9 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]" aria-describedby="subscription-add-description">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Subscription</DialogTitle>
-          <DialogDescription id="subscription-add-description">
-            Enter the details for your new subscription
-          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -132,15 +124,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description"
-            />
           </div>
         </div>
         <div className="flex justify-end gap-2">

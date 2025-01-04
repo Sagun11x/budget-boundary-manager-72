@@ -50,6 +50,11 @@ export const SubscriptionCard = ({
     return "text-green-500";
   };
 
+  const getDaysLeftText = (days: number) => {
+    if (days === 0) return "Expired";
+    return `${days} days left`;
+  };
+
   return (
     <Card className="p-4 relative group">
       <div className="flex items-start justify-between">
@@ -75,7 +80,7 @@ export const SubscriptionCard = ({
               <span className="text-gray-600">- ${cost.toFixed(2)}</span>
             </div>
             <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
-              {daysLeft} days left
+              {getDaysLeftText(daysLeft)}
             </p>
           </div>
         </div>

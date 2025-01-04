@@ -18,11 +18,8 @@ export const useSubscriptions = () => {
       return;
     }
     
-    setIsLoading(true);
     try {
-      console.log("Loading subscriptions for user:", user.uid);
       const firestoreSubs = await firestoreService.getAll(user.uid);
-      console.log("Loaded subscriptions:", firestoreSubs);
       await indexedDBService.sync(firestoreSubs);
       setSubscriptions(firestoreSubs);
     } catch (error) {
@@ -38,63 +35,63 @@ export const useSubscriptions = () => {
     }
   }, [user, toast]);
 
-  const handleSaveSubscription = async (subscription: Subscription) => {
+  const handleSaveSubscription = async (subscription: Omit<Subscription, 'id' | 'userId'>) => {
     if (!user) return;
     
-    setIsLoading(true);
     try {
-      console.log("Saving subscription:", subscription);
-      const subscriptionWithUser = { ...subscription, userId: user.uid };
+      const subscriptionWithUser = { ...subscription, userId: user.uid } as Subscription;
       const id = await firestoreService.add(subscriptionWithUser);
-      const finalSubscription = { ...subscriptionWithUser, id };
-      await indexedDBService.add(finalSubscription);
+      await loadSubscriptions(); // Reload the list after saving
       toast({
         title: "Success",
         description: "Subscription added successfully",
       });
-      return finalSubscription;
     } catch (error) {
       console.error('Error saving subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save subscription. Please try again.",
+        variant: "destructive",
+      });
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleEditSubscription = async (subscription: Subscription) => {
-    setIsLoading(true);
     try {
-      console.log("Editing subscription:", subscription);
       await firestoreService.update(subscription);
-      await indexedDBService.update(subscription);
+      await loadSubscriptions(); // Reload the list after editing
       toast({
         title: "Success",
         description: "Subscription updated successfully",
       });
-      return subscription;
     } catch (error) {
       console.error('Error updating subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription. Please try again.",
+        variant: "destructive",
+      });
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDeleteSubscription = async (id: string) => {
-    setIsLoading(true);
     try {
-      console.log("Deleting subscription:", id);
       await firestoreService.delete(id);
-      await indexedDBService.delete(id);
+      await loadSubscriptions(); // Reload the list after deleting
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
       });
     } catch (error) {
       console.error('Error deleting subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription. Please try again.",
+        variant: "destructive",
+      });
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 

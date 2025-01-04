@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
@@ -7,13 +7,11 @@ import { SubscriptionContent } from "@/components/SubscriptionContent";
 import { SubscriptionActions } from "@/components/SubscriptionActions";
 import { Analytics } from "@/components/Analytics";
 import { SubscriptionBot } from "@/components/SubscriptionBot";
-import { useToast } from "@/hooks/use-toast";
+import type { Subscription } from "@/types/subscription";
 
 const Index = () => {
   const { user, logout } = useAuth();
   const { isPro } = useSubscriptionStatus();
-  const { toast } = useToast();
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const {
     subscriptions,
     isLoading,
@@ -22,6 +20,7 @@ const Index = () => {
     handleEditSubscription,
     handleDeleteSubscription,
   } = useSubscriptions();
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -29,46 +28,17 @@ const Index = () => {
     }
   }, [user, loadSubscriptions]);
 
-  const onSave = async (subscription: any): Promise<void> => {
-    try {
-      await handleSaveSubscription(subscription);
-      await loadSubscriptions();
-    } catch (error) {
-      console.error("Save operation failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save subscription. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const onSave = async (subscription: Subscription): Promise<void> => {
+    const { id, userId, ...subscriptionData } = subscription;
+    await handleSaveSubscription(subscriptionData);
   };
 
-  const onEdit = async (subscription: any): Promise<void> => {
-    try {
-      await handleEditSubscription(subscription);
-      await loadSubscriptions();
-    } catch (error) {
-      console.error("Edit operation failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update subscription. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const onEdit = async (subscription: Subscription): Promise<void> => {
+    await handleEditSubscription(subscription);
   };
 
   const onDelete = async (id: string): Promise<void> => {
-    try {
-      await handleDeleteSubscription(id);
-      await loadSubscriptions();
-    } catch (error) {
-      console.error("Delete operation failed:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete subscription. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await handleDeleteSubscription(id);
   };
 
   return (

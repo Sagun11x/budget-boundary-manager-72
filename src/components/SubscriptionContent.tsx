@@ -39,6 +39,7 @@ export const SubscriptionContent = ({
   };
 
   const handleSave = async (subscription: Subscription) => {
+    if (isOperationLoading) return;
     setIsOperationLoading(true);
     try {
       await onSave(subscription);
@@ -49,6 +50,7 @@ export const SubscriptionContent = ({
   };
 
   const handleEdit = async (subscription: Subscription) => {
+    if (isOperationLoading) return;
     setIsOperationLoading(true);
     try {
       await onEdit(subscription);
@@ -59,6 +61,7 @@ export const SubscriptionContent = ({
   };
 
   const handleDelete = async (id: string) => {
+    if (isOperationLoading) return;
     setIsOperationLoading(true);
     try {
       await onDelete(id);

@@ -43,7 +43,7 @@ export const MobileMenu = ({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="lg:hidden">
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
@@ -78,7 +78,7 @@ export const MobileMenu = ({
               Information
             </Button>
 
-            {!isPro ? (
+            {!isPro && (
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -89,16 +89,6 @@ export const MobileMenu = ({
               >
                 <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent font-semibold">
                   Go Pro
-                </span>
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                className="w-full justify-start cursor-default"
-                disabled
-              >
-                <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent font-semibold">
-                  Subscribed
                 </span>
               </Button>
             )}

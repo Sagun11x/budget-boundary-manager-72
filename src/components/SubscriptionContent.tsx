@@ -4,7 +4,6 @@ import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
-import { addMonths, isAfter, isBefore } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
 interface SubscriptionContentProps {
@@ -47,57 +46,17 @@ export const SubscriptionContent = ({
     setEditingSubscription(null);
   };
 
-  const getNextRenewalDate = (subscription: Subscription) => {
-    const purchaseDate = new Date(subscription.purchaseDate);
-    const today = new Date();
-    let nextRenewal = purchaseDate;
-
-    // Calculate the next renewal date based on the renewal period
-    while (isBefore(nextRenewal, today)) {
-      switch (subscription.renewalPeriod.unit) {
-        case "days":
-          nextRenewal = addMonths(nextRenewal, subscription.renewalPeriod.number / 30);
-          break;
-        case "weeks":
-          nextRenewal = addMonths(nextRenewal, (subscription.renewalPeriod.number * 7) / 30);
-          break;
-        case "months":
-          nextRenewal = addMonths(nextRenewal, subscription.renewalPeriod.number);
-          break;
-        case "years":
-          nextRenewal = addMonths(nextRenewal, subscription.renewalPeriod.number * 12);
-          break;
-      }
-    }
-    return nextRenewal;
-  };
-
-  const isExpired = (subscription: Subscription) => {
-    const nextRenewal = getNextRenewalDate(subscription);
-    return isBefore(nextRenewal, new Date());
-  };
-
   const getSortedSubscriptions = () => {
     return [...subscriptions].sort((a, b) => {
       switch (sortBy) {
         case "nearest":
-          const aNextRenewal = getNextRenewalDate(a);
-          const bNextRenewal = getNextRenewalDate(b);
+          const aNextRenewal = new Date(a.purchaseDate);
+          const bNextRenewal = new Date(b.purchaseDate);
           return aNextRenewal.getTime() - bNextRenewal.getTime();
         case "expensive":
           return (Number(b.cost) || 0) - (Number(a.cost) || 0);
         case "cheapest":
           return (Number(a.cost) || 0) - (Number(b.cost) || 0);
-        case "expired":
-          const aIsExpired = isExpired(a);
-          const bIsExpired = isExpired(b);
-          if (aIsExpired === bIsExpired) {
-            // If both are expired or both are not expired, sort by next renewal date
-            const aNext = getNextRenewalDate(a);
-            const bNext = getNextRenewalDate(b);
-            return aNext.getTime() - bNext.getTime();
-          }
-          return aIsExpired ? -1 : 1; // Show expired first
         default:
           return 0;
       }

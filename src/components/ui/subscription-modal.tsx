@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -26,15 +27,47 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
   const [renewalNumber, setRenewalNumber] = useState("");
   const [renewalUnit, setRenewalUnit] = useState("days");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { toast } = useToast();
+
+  const fetchLogoFromName = async (serviceName: string) => {
+    if (!serviceName) return;
+    
+    // Clean the service name - remove spaces and special characters
+    const cleanName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    try {
+      // Try to fetch the logo
+      const response = await fetch(`https://logo.clearbit.com/${cleanName}.com`);
+      
+      if (response.ok) {
+        setLogo(`https://logo.clearbit.com/${cleanName}.com`);
+        console.log("Logo fetched successfully:", `https://logo.clearbit.com/${cleanName}.com`);
+      } else {
+        console.log("Logo fetch failed, clearing logo URL");
+        setLogo("");
+      }
+    } catch (error) {
+      console.log("Error fetching logo:", error);
+      setLogo("");
+    }
+  };
 
   useEffect(() => {
-    if (name && !logo) {
-      const logoUrl = `https://logo.clearbit.com/${name.toLowerCase().replace(/\s+/g, '')}.com`;
-      setLogo(logoUrl);
+    if (name) {
+      fetchLogoFromName(name);
     }
   }, [name]);
 
   const handleSave = () => {
+    if (!name || !cost || !renewalNumber || !renewalUnit) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     onSave({
       name,
       logo,

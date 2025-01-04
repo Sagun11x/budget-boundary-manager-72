@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SearchControls } from "@/components/SearchControls";
 import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
+import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
 import type { Subscription } from "@/types/subscription";
 
@@ -10,6 +11,8 @@ interface SubscriptionContentProps {
   isLoading: boolean;
   isPro: boolean;
   onSave: (subscription: Subscription) => Promise<void>;
+  onEdit: (subscription: Subscription) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
 export const SubscriptionContent = ({
@@ -17,11 +20,14 @@ export const SubscriptionContent = ({
   isLoading,
   isPro,
   onSave,
+  onEdit,
+  onDelete,
 }: SubscriptionContentProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
+  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
   const handleAddClick = () => {
     if (!isPro && subscriptions.length >= 5) {
@@ -29,6 +35,15 @@ export const SubscriptionContent = ({
     } else {
       setShowModal(true);
     }
+  };
+
+  const handleEdit = (subscription: Subscription) => {
+    setEditingSubscription(subscription);
+  };
+
+  const handleEditSave = async (subscription: Subscription) => {
+    await onEdit(subscription);
+    setEditingSubscription(null);
   };
 
   const getSortedSubscriptions = () => {
@@ -74,6 +89,8 @@ export const SubscriptionContent = ({
       ) : (
         <SubscriptionList
           subscriptions={filteredAndSortedSubscriptions()}
+          onEdit={handleEdit}
+          onDelete={onDelete}
         />
       )}
 
@@ -81,6 +98,13 @@ export const SubscriptionContent = ({
         open={showModal}
         onOpenChange={setShowModal}
         onSave={onSave}
+      />
+
+      <SubscriptionEdit
+        subscription={editingSubscription}
+        open={!!editingSubscription}
+        onOpenChange={(open) => !open && setEditingSubscription(null)}
+        onSave={handleEditSave}
       />
 
       <ProFeatureAlert

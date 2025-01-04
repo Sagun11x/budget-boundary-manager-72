@@ -18,6 +18,8 @@ const Index = () => {
     isOperationInProgress,
     loadSubscriptions,
     handleSaveSubscription,
+    handleEditSubscription,
+    handleDeleteSubscription,
   } = useSubscriptions();
   const [showAnalytics, setShowAnalytics] = useState(false);
 
@@ -51,6 +53,8 @@ const Index = () => {
             isLoading={isLoading || isOperationInProgress}
             isPro={isPro}
             onSave={onSave}
+            onEdit={handleEditSubscription}
+            onDelete={handleDeleteSubscription}
           />
 
           {isPro && <SubscriptionBot subscriptions={subscriptions} />}

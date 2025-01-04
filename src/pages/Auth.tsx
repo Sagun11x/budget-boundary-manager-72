@@ -3,19 +3,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Google } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, signUp } = useAuth();
+  const [username, setUsername] = useState("");
+  const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLogin) {
       await signIn(email, password);
     } else {
-      await signUp(email, password);
+      await signUp(email, password, username);
     }
   };
 
@@ -28,6 +30,15 @@ const Auth = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              {!isLogin && (
+                <Input
+                  type="text"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              )}
               <Input
                 type="email"
                 placeholder="Email"
@@ -45,6 +56,15 @@ const Auth = () => {
             </div>
             <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
               {isLogin ? "Login" : "Sign Up"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={signInWithGoogle}
+            >
+              <Google className="mr-2 h-4 w-4" />
+              Continue with Google
             </Button>
             <Button
               type="button"

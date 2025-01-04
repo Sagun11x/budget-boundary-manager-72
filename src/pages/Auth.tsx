@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Google } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -63,7 +63,7 @@ const Auth = () => {
               className="w-full"
               onClick={signInWithGoogle}
             >
-              <Google className="mr-2 h-4 w-4" />
+              <LogIn className="mr-2 h-4 w-4" />
               Continue with Google
             </Button>
             <Button

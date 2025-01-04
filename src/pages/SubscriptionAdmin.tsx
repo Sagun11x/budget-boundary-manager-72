@@ -1,91 +1,68 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { collection, query, where, getDocs, updateDoc, doc } from "firebase/firestore";
+import { collection, query, getDocs, updateDoc, doc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { format } from "date-fns";
 
-interface PendingSubscription {
-  id: string;
-  userId: string;
-  userEmail: string;
-  planType: "6-month" | "lifetime";
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  cost: number;
-}
-
 const SubscriptionAdmin = () => {
-  const { user } = useAuth();
-  const [pendingSubscriptions, setPendingSubscriptions] = useState<PendingSubscription[]>([]);
+  const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Hardcoded admin emails - in a real app, this should be in a secure configuration
-  const adminEmails = ["admin@example.com"];
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
-    const fetchPendingSubscriptions = async () => {
-      if (!user || !adminEmails.includes(user.email || "")) {
-        toast.error("Unauthorized access");
-        return;
-      }
+    fetchSubscriptions();
+  }, []);
 
-      try {
-        const q = query(
-          collection(db, "subscriptions"),
-          where("status", "==", "pending")
-        );
-        const querySnapshot = await getDocs(q);
-        const subscriptions: PendingSubscription[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          subscriptions.push({ id: doc.id, ...doc.data() } as PendingSubscription);
-        });
-
-        setPendingSubscriptions(subscriptions);
-      } catch (error) {
-        console.error("Error fetching subscriptions:", error);
-        toast.error("Failed to load pending subscriptions");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPendingSubscriptions();
-  }, [user]);
-
-  const handleSubscriptionAction = async (subscriptionId: string, action: "approved" | "rejected") => {
+  const fetchSubscriptions = async () => {
     try {
-      const subscriptionRef = doc(db, "subscriptions", subscriptionId);
-      await updateDoc(subscriptionRef, {
-        status: action,
-        updatedAt: new Date().toISOString(),
-        approvedBy: user?.email,
+      const q = query(collection(db, "subscriptions"));
+      const querySnapshot = await getDocs(q);
+      const subs = [];
+      querySnapshot.forEach((doc) => {
+        subs.push({ id: doc.id, ...doc.data() });
       });
-
-      setPendingSubscriptions(prevSubs => 
-        prevSubs.filter(sub => sub.id !== subscriptionId)
-      );
-
-      toast.success(`Subscription ${action} successfully`);
+      setSubscriptions(subs);
+      console.log("Fetched subscriptions:", subs);
     } catch (error) {
-      console.error(`Error ${action} subscription:`, error);
-      toast.error(`Failed to ${action} subscription`);
+      console.error("Error fetching subscriptions:", error);
+      toast.error("Failed to load subscriptions");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!user || !adminEmails.includes(user.email || "")) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="p-6">
-          <h1 className="text-xl font-semibold text-red-600">Unauthorized Access</h1>
-          <p className="text-gray-600 mt-2">You don't have permission to view this page.</p>
-        </Card>
-      </div>
-    );
-  }
+  const handleApproveSubscription = async (userEmail) => {
+    try {
+      console.log("Approving subscription for:", userEmail);
+      // Find user document by email
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", userEmail));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        toast.error("User not found");
+        return;
+      }
+
+      const userDoc = querySnapshot.docs[0];
+      
+      // Update user document with pro status
+      await updateDoc(doc(db, "users", userDoc.id), {
+        isProUser: true,
+        subscriptionStatus: "pro",
+        updatedAt: new Date().toISOString()
+      });
+
+      toast.success("User subscription approved");
+      fetchSubscriptions(); // Refresh the list
+    } catch (error) {
+      console.error("Error approving subscription:", error);
+      toast.error("Failed to approve subscription");
+    }
+  };
 
   if (loading) {
     return (
@@ -98,47 +75,43 @@ const SubscriptionAdmin = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Subscription Admin Panel</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Subscription Admin</h1>
         
-        {pendingSubscriptions.length === 0 ? (
-          <Card className="p-6">
-            <p className="text-gray-600">No pending subscriptions to review.</p>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {pendingSubscriptions.map((subscription) => (
-              <Card key={subscription.id} className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="font-semibold text-lg">{subscription.userEmail}</h2>
-                    <p className="text-sm text-gray-500">Plan: {subscription.planType}</p>
-                    <p className="text-sm text-gray-500">
-                      Cost: ${subscription.cost}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Requested: {format(new Date(subscription.createdAt), 'PPp')}
-                    </p>
-                  </div>
-                  <div className="space-x-2">
-                    <Button
-                      variant="default"
-                      onClick={() => handleSubscriptionAction(subscription.id, "approved")}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleSubscriptionAction(subscription.id, "rejected")}
-                    >
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+        <Card className="p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Approve User Subscription</h2>
+          <div className="flex gap-4">
+            <Input
+              placeholder="Enter user email"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              className="max-w-md"
+            />
+            <Button 
+              onClick={() => handleApproveSubscription(userEmail)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Approve Subscription
+            </Button>
           </div>
-        )}
+        </Card>
+
+        <div className="grid gap-4">
+          {subscriptions.map((subscription) => (
+            <Card key={subscription.id} className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="font-semibold text-lg">{subscription.userEmail}</h2>
+                  <p className="text-sm text-gray-500">Status: {subscription.subscriptionStatus || "pending"}</p>
+                  {subscription.updatedAt && (
+                    <p className="text-sm text-gray-500">
+                      Last Updated: {format(new Date(subscription.updatedAt), 'PPp')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

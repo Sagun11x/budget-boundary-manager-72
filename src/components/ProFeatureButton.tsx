@@ -23,7 +23,6 @@ export const ProFeatureButton = ({
 
   const handleClick = () => {
     setShowAlert(true);
-    onClick();
   };
 
   return (

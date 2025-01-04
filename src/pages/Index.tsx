@@ -14,6 +14,8 @@ import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 import { Header } from "@/components/Header";
 import { SubscriptionList } from "@/components/SubscriptionList";
 import { ProFeatureButton } from "@/components/ProFeatureButton";
+import { Button } from "@/components/ui/button";
+import { MessageCircle } from "lucide-react";
 
 const Index = () => {
   const { user, logout } = useAuth();

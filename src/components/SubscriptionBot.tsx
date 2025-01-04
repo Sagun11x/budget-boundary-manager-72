@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { MessageCircle, X, Send, Info } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { InfoModal } from "./InfoModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SubscriptionBotProps {
   subscriptions: Array<{
@@ -23,6 +24,7 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   const getSubscriptionContext = () => {
     const totalMonthly = subscriptions.reduce((acc, sub) => acc + sub.cost, 0);
@@ -62,12 +64,30 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
           >
             <MessageCircle className="h-6 w-6" />
           </Button>
+          {!isMobile && (
+            <Button
+              onClick={() => setShowInfo(true)}
+              className="rounded-full p-4"
+              variant="outline"
+            >
+              <Info className="h-6 w-6" />
+            </Button>
+          )}
         </div>
       ) : (
         <Card className="fixed bottom-4 right-4 w-80 p-4 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Subscription Assistant</h3>
             <div className="flex gap-2">
+              {!isMobile && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowInfo(true)}
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={() => setIsChatOpen(false)}>
                 <X className="h-4 w-4" />
               </Button>

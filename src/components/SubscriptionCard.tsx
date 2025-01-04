@@ -59,21 +59,19 @@ export const SubscriptionCard = ({
     <Card className="p-4 relative group">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            {subscription.logo ? (
-              <img 
-                src={subscription.logo} 
-                alt={`${subscription.name} logo`}
-                className="h-6 w-6 object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg";
-                  e.currentTarget.onerror = null;
-                }}
-              />
-            ) : (
-              <Package className="h-6 w-6 text-gray-600" />
-            )}
-          </div>
+          {subscription.logo ? (
+            <img 
+              src={subscription.logo} 
+              alt={`${subscription.name} logo`}
+              className="h-10 w-10 object-contain rounded-lg bg-gray-100 p-2"
+              onError={(e) => {
+                e.currentTarget.src = "/placeholder.svg";
+                e.currentTarget.onerror = null;
+              }}
+            />
+          ) : (
+            <Package className="h-10 w-10 p-2 bg-gray-100 rounded-lg text-gray-600" />
+          )}
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2">
               <h3 className="font-medium">{subscription.name}</h3>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -23,9 +24,10 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState("");
   const [renewalUnit, setRenewalUnit] = useState("days");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
-    if (name) {
+    if (name && !logo) {
       const logoUrl = `https://logo.clearbit.com/${name.toLowerCase().replace(/\s+/g, '')}.com`;
       setLogo(logoUrl);
     }
@@ -53,6 +55,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setRenewalNumber("");
     setRenewalUnit("days");
+    setShowAdvanced(false);
   };
 
   return (
@@ -70,18 +73,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
               onChange={(e) => setName(e.target.value)}
               placeholder="Subscription Name"
             />
-            {logo && (
-              <div className="mt-2">
-                <img
-                  src={logo}
-                  alt={`${name} logo`}
-                  className="h-12 w-12 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-              </div>
-            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>
@@ -125,6 +116,25 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
               </Select>
             </div>
           </div>
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2 w-full justify-center"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            Advanced Options
+            {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+          {showAdvanced && (
+            <div className="grid gap-2">
+              <Label htmlFor="logo">Custom Logo URL</Label>
+              <Input
+                id="logo"
+                value={logo}
+                onChange={(e) => setLogo(e.target.value)}
+                placeholder="https://example.com/logo.png"
+              />
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="destructive" onClick={() => onOpenChange(false)}>

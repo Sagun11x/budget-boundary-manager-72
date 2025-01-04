@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionModalProps {
@@ -107,6 +107,23 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               onChange={(e) => setName(e.target.value)}
               placeholder="Subscription Name"
             />
+            {name && (
+              <div className="mt-2 flex items-center justify-center">
+                {logo ? (
+                  <img 
+                    src={logo} 
+                    alt={`${name} logo`}
+                    className="h-16 w-16 object-contain"
+                    onError={(e) => {
+                      e.currentTarget.src = "/placeholder.svg";
+                      e.currentTarget.onerror = null;
+                    }}
+                  />
+                ) : (
+                  <Package className="h-16 w-16 text-gray-400" />
+                )}
+              </div>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>

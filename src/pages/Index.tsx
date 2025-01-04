@@ -29,7 +29,7 @@ const Index = () => {
     }
   }, [user, loadSubscriptions]);
 
-  const handleOperation = async (operation: () => Promise<void>) => {
+  const handleOperation = async (operation: () => Promise<any>) => {
     try {
       await operation();
       await loadSubscriptions(); // Refresh data after operation
@@ -43,16 +43,22 @@ const Index = () => {
     }
   };
 
-  const onSave = async (subscription: any) => {
-    await handleOperation(() => handleSaveSubscription(subscription));
+  const onSave = async (subscription: any): Promise<void> => {
+    await handleOperation(async () => {
+      await handleSaveSubscription(subscription);
+    });
   };
 
-  const onEdit = async (subscription: any) => {
-    await handleOperation(() => handleEditSubscription(subscription));
+  const onEdit = async (subscription: any): Promise<void> => {
+    await handleOperation(async () => {
+      await handleEditSubscription(subscription);
+    });
   };
 
-  const onDelete = async (id: string) => {
-    await handleOperation(() => handleDeleteSubscription(id));
+  const onDelete = async (id: string): Promise<void> => {
+    await handleOperation(async () => {
+      await handleDeleteSubscription(id);
+    });
   };
 
   return (

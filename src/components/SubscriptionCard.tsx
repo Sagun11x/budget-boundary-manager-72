@@ -44,8 +44,14 @@ export const SubscriptionCard = ({
   const daysLeft = differenceInDays(nextRenewal, new Date());
   const cost = Number(subscription.cost) || 0;
 
+  const getDaysLeftColor = (days: number) => {
+    if (days <= 3) return "text-red-500";
+    if (days <= 7) return "text-orange-500";
+    return "text-green-500";
+  };
+
   return (
-    <Card className="p-4 relative">
+    <Card className="p-4 relative group">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gray-100 rounded-lg">
@@ -68,10 +74,12 @@ export const SubscriptionCard = ({
               <h3 className="font-medium">{subscription.name}</h3>
               <span className="text-gray-600">- ${cost.toFixed(2)}</span>
             </div>
-            <p className="text-sm text-gray-500">{daysLeft} days left</p>
+            <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
+              {daysLeft} days left
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           {onEdit && (
             <Button
               variant="ghost"

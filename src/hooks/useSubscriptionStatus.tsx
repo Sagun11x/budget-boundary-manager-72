@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
-import { subscriptionService } from "@/services/subscriptionService";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export const useSubscriptionStatus = () => {
   const { user } = useAuth();
@@ -23,8 +24,25 @@ export const useSubscriptionStatus = () => {
 
       try {
         console.log("Checking subscription status for user:", user.uid);
-        const isProUser = await subscriptionService.checkSubscriptionStatus(user.uid);
+        // Get user document directly from Firestore
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        
+        if (!userDoc.exists()) {
+          console.log("User document not found");
+          if (isMounted) {
+            setIsPro(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
+        const userData = userDoc.data();
+        console.log("User subscription data:", userData);
+
+        // Check if user is pro based on isProUser flag and subscription status
+        const isProUser = userData.isProUser === true && userData.subscriptionStatus === "pro";
         console.log("Is pro user:", isProUser);
+
         if (isMounted) {
           setIsPro(isProUser);
           setIsLoading(false);

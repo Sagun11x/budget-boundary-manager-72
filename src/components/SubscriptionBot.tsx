@@ -62,26 +62,12 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
           >
             <MessageCircle className="h-6 w-6" />
           </Button>
-          <Button
-            onClick={() => setShowInfo(true)}
-            className="rounded-full p-4"
-            variant="outline"
-          >
-            <Info className="h-6 w-6" />
-          </Button>
         </div>
       ) : (
         <Card className="fixed bottom-4 right-4 w-80 p-4 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Subscription Assistant</h3>
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowInfo(true)}
-              >
-                <Info className="h-4 w-4" />
-              </Button>
               <Button variant="ghost" size="icon" onClick={() => setIsChatOpen(false)}>
                 <X className="h-4 w-4" />
               </Button>

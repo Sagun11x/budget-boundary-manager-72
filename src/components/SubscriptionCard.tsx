@@ -3,6 +3,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { differenceInDays, addDays, addMonths, addYears, addWeeks } from "date-fns";
 import type { Subscription } from "@/types/subscription";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -15,6 +16,8 @@ export const SubscriptionCard = ({
   onEdit,
   onDelete,
 }: SubscriptionCardProps) => {
+  const { isPro } = useSubscriptionStatus();
+
   const calculateNextRenewal = (purchaseDate: string, renewalPeriod: { number: number; unit: string }) => {
     const startDate = new Date(purchaseDate);
     const today = new Date();
@@ -63,14 +66,14 @@ export const SubscriptionCard = ({
             <img 
               src={subscription.logo} 
               alt={`${subscription.name} logo`}
-              className="h-10 w-10 object-contain rounded-lg bg-gray-100 p-2"
+              className="h-10 w-10 object-contain"
               onError={(e) => {
                 e.currentTarget.src = "/placeholder.svg";
                 e.currentTarget.onerror = null;
               }}
             />
           ) : (
-            <Package className="h-10 w-10 p-2 bg-gray-100 rounded-lg text-gray-600" />
+            <Package className="h-10 w-10 text-gray-600" />
           )}
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2">

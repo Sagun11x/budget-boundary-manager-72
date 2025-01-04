@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -50,7 +51,6 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
       });
       onOpenChange(false);
     } catch (error) {
-      console.error('Error requesting subscription:', error);
       toast({
         title: "Error",
         description: "Failed to submit subscription request. Please try again.",
@@ -75,13 +75,16 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="pro-plan-description">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-4 flex items-center justify-center gap-2">
             <Bot className="w-6 h-6" />
             <span>Pro + AI</span>
             <Brain className="w-6 h-6" />
           </DialogTitle>
+          <DialogDescription id="pro-plan-description">
+            Choose your subscription plan and unlock premium features
+          </DialogDescription>
         </DialogHeader>
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
           <div className="flex justify-between items-center mb-6">

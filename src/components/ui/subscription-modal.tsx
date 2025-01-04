@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,9 +62,12 @@ export function SubscriptionModal({ open, onOpenChange, onSave }: SubscriptionMo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" aria-describedby="subscription-add-description">
         <DialogHeader>
           <DialogTitle>Add New Subscription</DialogTitle>
+          <DialogDescription id="subscription-add-description">
+            Enter the details for your new subscription
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">

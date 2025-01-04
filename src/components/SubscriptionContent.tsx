@@ -4,6 +4,7 @@ import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
+import { addDays, addMonths, addWeeks, addYears } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
 interface SubscriptionContentProps {
@@ -46,12 +47,37 @@ export const SubscriptionContent = ({
     setEditingSubscription(null);
   };
 
+  const calculateNextRenewal = (subscription: Subscription) => {
+    const startDate = new Date(subscription.purchaseDate);
+    const today = new Date();
+    let nextRenewal = startDate;
+
+    while (nextRenewal <= today) {
+      switch (subscription.renewalPeriod.unit) {
+        case "days":
+          nextRenewal = addDays(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "weeks":
+          nextRenewal = addWeeks(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "months":
+          nextRenewal = addMonths(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "years":
+          nextRenewal = addYears(nextRenewal, subscription.renewalPeriod.number);
+          break;
+      }
+    }
+
+    return nextRenewal;
+  };
+
   const getSortedSubscriptions = () => {
     return [...subscriptions].sort((a, b) => {
       switch (sortBy) {
         case "nearest":
-          const aNextRenewal = new Date(a.purchaseDate);
-          const bNextRenewal = new Date(b.purchaseDate);
+          const aNextRenewal = calculateNextRenewal(a);
+          const bNextRenewal = calculateNextRenewal(b);
           return aNextRenewal.getTime() - bNextRenewal.getTime();
         case "expensive":
           return (Number(b.cost) || 0) - (Number(a.cost) || 0);

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -30,14 +31,19 @@ export const MobileMenu = ({
   isPro,
   sortBy,
   setSortBy,
-  onInfoClick,
   onProClick,
 }: MobileMenuProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const handleSortChange = (value: string) => {
     setSortBy(value);
     setIsOpen(false);
+  };
+
+  const handleInfoClick = () => {
+    setIsOpen(false);
+    navigate('/info');
   };
 
   return (
@@ -69,10 +75,7 @@ export const MobileMenu = ({
           <div className="space-y-2">
             <Button
               variant="ghost"
-              onClick={() => {
-                onInfoClick();
-                setIsOpen(false);
-              }}
+              onClick={handleInfoClick}
               className="w-full justify-start"
             >
               Information

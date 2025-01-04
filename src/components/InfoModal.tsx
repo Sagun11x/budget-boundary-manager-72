@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { X, FileText, Facebook, Twitter, Instagram, LifeBuoy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InfoModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface InfoModalProps {
 
 export const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   if (!isOpen) return null;
 
@@ -22,6 +24,9 @@ export const InfoModal = ({ isOpen, onClose }: InfoModalProps) => {
     e.stopPropagation();
     onClose();
   };
+
+  // Don't render the modal on mobile devices
+  if (isMobile) return null;
 
   return (
     <>

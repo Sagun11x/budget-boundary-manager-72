@@ -18,7 +18,7 @@ interface SubscriptionBotProps {
 }
 
 export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
@@ -51,70 +51,68 @@ export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <div className="fixed bottom-4 right-4 flex gap-2">
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="rounded-full p-4"
-          variant="default"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-        <Button
-          onClick={() => setShowInfo(true)}
-          className="rounded-full p-4"
-          variant="outline"
-        >
-          <Info className="h-6 w-6" />
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <>
-      <Card className="fixed bottom-4 right-4 w-80 p-4 shadow-lg">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Subscription Assistant</h3>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowInfo(true)}
-            >
-              <Info className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+      {!isChatOpen ? (
+        <div className="fixed bottom-4 right-4 flex gap-2">
+          <Button
+            onClick={() => setIsChatOpen(true)}
+            className="rounded-full p-4"
+            variant="default"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+          <Button
+            onClick={() => setShowInfo(true)}
+            className="rounded-full p-4"
+            variant="outline"
+          >
+            <Info className="h-6 w-6" />
+          </Button>
         </div>
-
-        <div className="space-y-4">
-          {response && (
-            <div className="bg-muted rounded-lg p-3 text-sm">
-              <div className="flex-1">{response}</div>
+      ) : (
+        <Card className="fixed bottom-4 right-4 w-80 p-4 shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold">Subscription Assistant</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowInfo(true)}
+              >
+                <Info className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setIsChatOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          )}
-
-          <div className="flex gap-2">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask about your subscriptions..."
-              className="min-h-[80px]"
-            />
-            <Button 
-              onClick={handleSendMessage} 
-              disabled={isLoading || !message.trim()}
-              className="self-end"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
           </div>
-        </div>
-      </Card>
+
+          <div className="space-y-4">
+            {response && (
+              <div className="bg-muted rounded-lg p-3 text-sm">
+                <div className="flex-1">{response}</div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Ask about your subscriptions..."
+                className="min-h-[80px]"
+              />
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={isLoading || !message.trim()}
+                className="self-end"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <InfoModal isOpen={showInfo} onClose={() => setShowInfo(false)} />
     </>

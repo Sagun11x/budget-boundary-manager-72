@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { SearchControls } from "@/components/SearchControls";
 import type { Subscription } from "@/types/subscription";
 import { indexedDBService } from "@/services/indexedDBService";
@@ -14,11 +11,14 @@ import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { SubscriptionBot } from "@/components/SubscriptionBot";
 import { ProPlanModal } from "@/components/ProPlanModal";
 import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
+import { Header } from "@/components/Header";
+import { SubscriptionList } from "@/components/SubscriptionList";
+import { ProFeatureButton } from "@/components/ProFeatureButton";
 
 const Index = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
-  const { isPro, isLoading: isProStatusLoading } = useSubscriptionStatus();
+  const { isPro } = useSubscriptionStatus();
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
@@ -27,7 +27,6 @@ const Index = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
-  // Load subscriptions on mount
   useEffect(() => {
     const loadSubscriptions = async () => {
       try {
@@ -56,6 +55,11 @@ const Index = () => {
 
   const handleSaveSubscription = async (subscription: Subscription) => {
     if (!isPro && subscriptions.length >= 5) {
+      toast({
+        title: "Subscription Limit Reached",
+        description: "Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!",
+        variant: "destructive",
+      });
       setShowProModal(true);
       return;
     }
@@ -141,37 +145,31 @@ const Index = () => {
     });
   };
 
-  const showUpgradePrompt = () => {
-    setShowProModal(true);
-    toast({
-      title: "Pro Feature",
-      description: "Upgrade to Pro to unlock this feature!",
-      variant: "default",
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Subscription Manager</h1>
-          <Button variant="ghost" onClick={logout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </header>
+      <Header logout={logout} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <Button
-              variant="link"
-              onClick={() => isPro ? setShowAnalytics(!showAnalytics) : showUpgradePrompt()}
-              className="text-sm text-gray-600 hover:text-gray-900"
-            >
-              {showAnalytics ? "Hide Analytics" : "Show Analytics"}
-            </Button>
+            {isPro ? (
+              <Button
+                variant="link"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                {showAnalytics ? "Hide Analytics" : "Show Analytics"}
+              </Button>
+            ) : (
+              <ProFeatureButton
+                onClick={() => setShowProModal(true)}
+                variant="link"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Show Analytics
+              </ProFeatureButton>
+            )}
+            
             {!isPro && (
               <Button
                 variant="ghost"
@@ -196,23 +194,23 @@ const Index = () => {
               setSortBy={setSortBy}
               onAddClick={() => {
                 if (!isPro && subscriptions.length >= 5) {
-                  showUpgradePrompt();
+                  toast({
+                    title: "Subscription Limit Reached",
+                    description: "Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!",
+                    variant: "destructive",
+                  });
+                  setShowProModal(true);
                 } else {
                   setShowModal(true);
                 }
               }}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getSortedSubscriptions().map((subscription) => (
-                <SubscriptionCard
-                  key={subscription.id}
-                  subscription={subscription}
-                  onEdit={() => setEditingSubscription(subscription)}
-                  onDelete={handleDeleteSubscription}
-                />
-              ))}
-            </div>
+            <SubscriptionList
+              subscriptions={getSortedSubscriptions()}
+              onEdit={setEditingSubscription}
+              onDelete={handleDeleteSubscription}
+            />
           </div>
         </div>
 
@@ -234,7 +232,26 @@ const Index = () => {
           onOpenChange={setShowProModal}
         />
 
-        {isPro && <SubscriptionBot subscriptions={subscriptions} />}
+        {isPro ? (
+          <SubscriptionBot subscriptions={subscriptions} />
+        ) : (
+          subscriptions.length > 0 && (
+            <Button
+              onClick={() => {
+                toast({
+                  title: "AI Assistant is a Pro Feature",
+                  description: "Upgrade to Pro to get personalized subscription insights from our AI assistant!",
+                  variant: "destructive",
+                });
+                setShowProModal(true);
+              }}
+              className="fixed bottom-4 right-4 rounded-full p-4"
+              variant="default"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </Button>
+          )
+        )}
       </main>
     </div>
   );

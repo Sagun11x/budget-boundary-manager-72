@@ -30,9 +30,9 @@ export const SearchControls = ({
   const isMobile = useIsMobile();
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 md:flex-none md:w-auto w-[80%]">
+    <div className="space-y-4 md:space-y-0">
+      <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
+        <div className="relative flex-1 md:flex-none md:w-[60%] w-[80%]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
@@ -44,26 +44,26 @@ export const SearchControls = ({
         </div>
         <Button 
           onClick={onAddClick} 
-          className="whitespace-nowrap md:w-auto w-[20%]"
+          className="whitespace-nowrap md:w-[20%] w-[20%]"
         >
           <Plus className="h-4 w-4 md:mr-2" />
           {!isMobile && "Add Subscription"}
         </Button>
+        {!hideSortBy && (
+          <div className="w-full md:w-[20%]">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nearest">Nearest Renewal</SelectItem>
+                <SelectItem value="expensive">Most Expensive</SelectItem>
+                <SelectItem value="cheapest">Cheapest First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
-      {!hideSortBy && (
-        <div className="hidden md:block">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="nearest">Nearest Renewal</SelectItem>
-              <SelectItem value="expensive">Most Expensive</SelectItem>
-              <SelectItem value="cheapest">Cheapest First</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
     </div>
   );
 };

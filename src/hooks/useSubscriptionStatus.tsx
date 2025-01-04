@@ -1,7 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { subscriptionService } from "@/services/subscriptionService";
 
 export const useSubscriptionStatus = () => {
   const { user } = useAuth();
@@ -9,7 +8,7 @@ export const useSubscriptionStatus = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkSubscriptionStatus = async () => {
+    const checkStatus = async () => {
       if (!user) {
         setIsPro(false);
         setIsLoading(false);
@@ -17,8 +16,8 @@ export const useSubscriptionStatus = () => {
       }
 
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        setIsPro(userDoc.data()?.subscriptionStatus === "pro");
+        const isProUser = await subscriptionService.checkSubscriptionStatus(user.uid);
+        setIsPro(isProUser);
       } catch (error) {
         console.error("Error checking subscription status:", error);
         setIsPro(false);
@@ -26,7 +25,7 @@ export const useSubscriptionStatus = () => {
       setIsLoading(false);
     };
 
-    checkSubscriptionStatus();
+    checkStatus();
   }, [user]);
 
   return { isPro, isLoading };

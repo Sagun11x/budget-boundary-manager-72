@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import { Check, Sparkles, Bot, Brain, MessageSquare } from "lucide-react";
+import { subscriptionService } from "@/services/subscriptionService";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProPlanModalProps {
   open: boolean;
@@ -18,15 +20,45 @@ interface ProPlanModalProps {
 
 export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isLifetime, setIsLifetime] = useState(false);
   const [isHovered, setIsHovered] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handlePurchase = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Payment integration will be available soon!",
-    });
-    onOpenChange(false);
+  const handlePurchase = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please login to subscribe",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const planType = isLifetime ? 'lifetime' : '6-month';
+      await subscriptionService.requestSubscription(
+        user.uid,
+        user.email || '',
+        planType
+      );
+      
+      toast({
+        title: "Success",
+        description: "Subscription request submitted successfully! Admin will review shortly.",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error requesting subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit subscription request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const features = [
@@ -114,12 +146,13 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
               </motion.div>
             ))}
           </div>
-
+          
           <Button 
             className="w-full bg-primary hover:bg-primary/90 transition-colors group"
             onClick={handlePurchase}
+            disabled={isSubmitting}
           >
-            <span>Choose Plan</span>
+            <span>{isSubmitting ? 'Processing...' : 'Request Subscription'}</span>
             <MessageSquare className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Button>
         </div>

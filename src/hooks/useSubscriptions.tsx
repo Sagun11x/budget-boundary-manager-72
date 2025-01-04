@@ -12,7 +12,11 @@ export const useSubscriptions = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadSubscriptions = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setSubscriptions([]);
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -25,9 +29,10 @@ export const useSubscriptions = () => {
       console.error('Error loading subscriptions:', error);
       toast({
         title: "Error",
-        description: "Failed to load subscriptions",
+        description: "Failed to load subscriptions. Please try again.",
         variant: "destructive",
       });
+      setSubscriptions([]);
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +40,6 @@ export const useSubscriptions = () => {
 
   const handleSaveSubscription = async (subscription: Subscription) => {
     if (!user) return;
-    setIsLoading(true);
     
     try {
       console.log("Saving subscription:", subscription);
@@ -43,66 +47,45 @@ export const useSubscriptions = () => {
       const id = await firestoreService.add(subscriptionWithUser);
       const finalSubscription = { ...subscriptionWithUser, id };
       await indexedDBService.add(finalSubscription);
-      await loadSubscriptions(); // Reload to ensure consistency
       toast({
         title: "Success",
         description: "Subscription added successfully",
       });
+      return finalSubscription;
     } catch (error) {
       console.error('Error saving subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save subscription",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 
   const handleEditSubscription = async (subscription: Subscription) => {
-    setIsLoading(true);
     try {
       console.log("Editing subscription:", subscription);
       await firestoreService.update(subscription);
       await indexedDBService.update(subscription);
-      await loadSubscriptions(); // Reload to ensure consistency
       toast({
         title: "Success",
         description: "Subscription updated successfully",
       });
+      return subscription;
     } catch (error) {
       console.error('Error updating subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update subscription",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 
   const handleDeleteSubscription = async (id: string) => {
-    setIsLoading(true);
     try {
       console.log("Deleting subscription:", id);
       await firestoreService.delete(id);
       await indexedDBService.delete(id);
-      await loadSubscriptions(); // Reload to ensure consistency
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
       });
     } catch (error) {
       console.error('Error deleting subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete subscription",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 

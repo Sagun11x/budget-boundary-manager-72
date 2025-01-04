@@ -28,12 +28,42 @@ export const SubscriptionContent = ({
   const [sortBy, setSortBy] = useState("nearest");
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
+  const [isOperationLoading, setIsOperationLoading] = useState(false);
 
   const handleAddClick = () => {
     if (!isPro && subscriptions.length >= 5) {
       setShowSubscriptionLimitAlert(true);
     } else {
       setShowModal(true);
+    }
+  };
+
+  const handleSave = async (subscription: Subscription) => {
+    setIsOperationLoading(true);
+    try {
+      await onSave(subscription);
+      setShowModal(false);
+    } finally {
+      setIsOperationLoading(false);
+    }
+  };
+
+  const handleEdit = async (subscription: Subscription) => {
+    setIsOperationLoading(true);
+    try {
+      await onEdit(subscription);
+      setEditingSubscription(null);
+    } finally {
+      setIsOperationLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setIsOperationLoading(true);
+    try {
+      await onDelete(id);
+    } finally {
+      setIsOperationLoading(false);
     }
   };
 
@@ -73,7 +103,7 @@ export const SubscriptionContent = ({
         onAddClick={handleAddClick}
       />
 
-      {isLoading ? (
+      {(isLoading || isOperationLoading) ? (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
@@ -81,21 +111,21 @@ export const SubscriptionContent = ({
         <SubscriptionList
           subscriptions={filteredAndSortedSubscriptions()}
           onEdit={setEditingSubscription}
-          onDelete={onDelete}
+          onDelete={handleDelete}
         />
       )}
 
       <SubscriptionModal
         open={showModal}
         onOpenChange={setShowModal}
-        onSave={onSave}
+        onSave={handleSave}
       />
 
       <SubscriptionEdit
         subscription={editingSubscription}
         open={!!editingSubscription}
         onOpenChange={(open) => !open && setEditingSubscription(null)}
-        onSave={onEdit}
+        onSave={handleEdit}
       />
 
       <ProFeatureAlert

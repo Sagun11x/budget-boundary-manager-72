@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { addMonths, format } from "date-fns";
+import { addMonths, format, differenceInDays } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
 interface AnalyticsProps {
@@ -31,6 +31,12 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
 
   const analytics = calculateAnalytics();
 
+  const getRenewalDays = (purchaseDate: string) => {
+    const nextRenewal = addMonths(new Date(purchaseDate), 1);
+    const daysUntilRenewal = differenceInDays(nextRenewal, new Date());
+    return daysUntilRenewal;
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <Card className="p-6">
@@ -61,7 +67,7 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
                 <span className="text-gray-600">${sub.cost.toFixed(2)}</span>
               </div>
               <p className="text-sm text-gray-500">
-                Renews: {format(addMonths(new Date(sub.purchaseDate), 1), 'MMM dd, yyyy')}
+                Renews in {getRenewalDays(sub.purchaseDate)} days
               </p>
             </div>
           ))}

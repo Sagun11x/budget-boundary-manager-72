@@ -39,16 +39,27 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
     try {
       console.log("Attempting to fetch logo for:", cleanName);
       
-      // First try to check if the image exists
-      const checkResponse = await fetch(`https://logo.clearbit.com/${cleanName}.com`, {
-        method: 'HEAD',
-        mode: 'no-cors' // This prevents CORS errors during the check
-      });
-      
-      // If we get here, the image likely exists, set the URL
+      // Create an Image object to test if the logo exists
+      const img = new Image();
       const logoUrl = `https://logo.clearbit.com/${cleanName}.com`;
-      setLogo(logoUrl);
-      console.log("Logo URL set to:", logoUrl);
+      
+      // Create a promise that resolves when the image loads or rejects on error
+      const imageLoadPromise = new Promise((resolve, reject) => {
+        img.onload = () => resolve(logoUrl);
+        img.onerror = () => reject(new Error('Logo not found'));
+        img.src = logoUrl;
+      });
+
+      // Wait for the image to load with a timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Logo fetch timeout')), 5000);
+      });
+
+      // Race between image loading and timeout
+      const result = await Promise.race([imageLoadPromise, timeoutPromise]);
+      
+      console.log("Logo URL set to:", result);
+      setLogo(result as string);
       
     } catch (error) {
       console.log("Error checking logo:", error);

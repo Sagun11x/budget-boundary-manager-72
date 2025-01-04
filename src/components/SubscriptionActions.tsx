@@ -48,9 +48,8 @@ export const SubscriptionActions = ({
           onClick={() => setShowProModal(true)}
           className="text-sm relative group"
         >
-          <span className="relative inline-block animate-pulse">
-            <span className="absolute -inset-1 bg-primary/20 rounded-lg blur-sm group-hover:bg-primary/30 transition-all duration-300"></span>
-            <span className="relative text-primary font-semibold">Go Pro</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-semibold">
+            Go Pro
           </span>
         </Button>
       )}

@@ -48,7 +48,7 @@ export const SubscriptionActions = ({
           onClick={() => setShowProModal(true)}
           className="text-sm relative group"
         >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-semibold">
+          <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent font-semibold">
             Go Pro
           </span>
         </Button>
@@ -58,7 +58,7 @@ export const SubscriptionActions = ({
           className="text-sm relative group cursor-default"
           disabled
         >
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-semibold">
+          <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent font-semibold">
             Subscribed
           </span>
         </Button>

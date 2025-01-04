@@ -2,7 +2,6 @@ import { useState } from "react";
 import { SearchControls } from "@/components/SearchControls";
 import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
-import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
 import type { Subscription } from "@/types/subscription";
 
@@ -11,8 +10,6 @@ interface SubscriptionContentProps {
   isLoading: boolean;
   isPro: boolean;
   onSave: (subscription: Subscription) => Promise<void>;
-  onEdit: (subscription: Subscription) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
 }
 
 export const SubscriptionContent = ({
@@ -20,13 +17,10 @@ export const SubscriptionContent = ({
   isLoading,
   isPro,
   onSave,
-  onEdit,
-  onDelete,
 }: SubscriptionContentProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
 
   const handleAddClick = () => {
@@ -80,8 +74,6 @@ export const SubscriptionContent = ({
       ) : (
         <SubscriptionList
           subscriptions={filteredAndSortedSubscriptions()}
-          onEdit={setEditingSubscription}
-          onDelete={onDelete}
         />
       )}
 
@@ -89,13 +81,6 @@ export const SubscriptionContent = ({
         open={showModal}
         onOpenChange={setShowModal}
         onSave={onSave}
-      />
-
-      <SubscriptionEdit
-        subscription={editingSubscription}
-        open={!!editingSubscription}
-        onOpenChange={(open) => !open && setEditingSubscription(null)}
-        onSave={onEdit}
       />
 
       <ProFeatureAlert

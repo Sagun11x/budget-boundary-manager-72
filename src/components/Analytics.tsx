@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { addMonths, format, differenceInDays } from "date-fns";
+import { addMonths, format, differenceInDays, addDays, addWeeks, addYears } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
 interface AnalyticsProps {
@@ -29,12 +29,29 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
     };
   };
 
-  const analytics = calculateAnalytics();
+  const getRenewalDays = (purchaseDate: string, renewalPeriod: { number: number; unit: string }) => {
+    const startDate = new Date(purchaseDate);
+    const today = new Date();
+    let nextRenewal = startDate;
 
-  const getRenewalDays = (purchaseDate: string) => {
-    const nextRenewal = addMonths(new Date(purchaseDate), 1);
-    const daysUntilRenewal = differenceInDays(nextRenewal, new Date());
-    return daysUntilRenewal;
+    while (nextRenewal <= today) {
+      switch (renewalPeriod.unit) {
+        case "days":
+          nextRenewal = addDays(nextRenewal, renewalPeriod.number);
+          break;
+        case "weeks":
+          nextRenewal = addWeeks(nextRenewal, renewalPeriod.number);
+          break;
+        case "months":
+          nextRenewal = addMonths(nextRenewal, renewalPeriod.number);
+          break;
+        case "years":
+          nextRenewal = addYears(nextRenewal, renewalPeriod.number);
+          break;
+      }
+    }
+
+    return differenceInDays(nextRenewal, today);
   };
 
   const calculateRenewalRatio = (subscription: Subscription) => {
@@ -48,6 +65,8 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
     
     return `${Math.round(ratio)}%`;
   };
+
+  const analytics = calculateAnalytics();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -80,7 +99,7 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
               </div>
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-500">
-                  Renews in {getRenewalDays(sub.purchaseDate)} days
+                  Renews in {getRenewalDays(sub.purchaseDate, sub.renewalPeriod)} days
                 </p>
                 <p className="text-sm text-gray-500">
                   Period used: {calculateRenewalRatio(sub)}

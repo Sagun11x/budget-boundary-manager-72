@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -60,10 +59,14 @@ const Auth = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2"
               onClick={signInWithGoogle}
             >
-              <LogIn className="mr-2 h-4 w-4" />
+              <img 
+                src="https://www.google.com/favicon.ico" 
+                alt="Google logo" 
+                className="w-4 h-4"
+              />
               Continue with Google
             </Button>
             <Button

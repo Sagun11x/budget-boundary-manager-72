@@ -1,14 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  updateProfile 
-} from "firebase/auth";
+import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -16,8 +8,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, username: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -27,7 +18,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -48,28 +38,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, username: string) => {
+  const signUp = async (email: string, password: string) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: username
-        });
-      }
+      await createUserWithEmailAndPassword(auth, email, password);
       toast.success("Account created successfully!");
       navigate("/dashboard");
     } catch (error) {
       toast.error("Failed to create account. Please try again.");
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success("Successfully signed in with Google!");
-      navigate("/dashboard");
-    } catch (error) {
-      toast.error("Failed to sign in with Google.");
     }
   };
 
@@ -84,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

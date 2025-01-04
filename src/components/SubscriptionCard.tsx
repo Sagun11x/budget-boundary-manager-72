@@ -80,20 +80,30 @@ export const SubscriptionCard = ({
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 hover:bg-gray-100"
+            >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent 
+            align="end" 
+            className="w-40 bg-white shadow-lg rounded-md border border-gray-200 z-50"
+          >
             {onEdit && (
-              <DropdownMenuItem onClick={() => onEdit(subscription)}>
+              <DropdownMenuItem 
+                onClick={() => onEdit(subscription)}
+                className="cursor-pointer hover:bg-gray-100"
+              >
                 Edit
               </DropdownMenuItem>
             )}
             {onDelete && (
               <DropdownMenuItem
-                className="text-red-600"
                 onClick={() => onDelete(subscription.id)}
+                className="cursor-pointer text-red-600 hover:bg-red-50 hover:text-red-700"
               >
                 Delete
               </DropdownMenuItem>

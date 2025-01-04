@@ -50,6 +50,7 @@ export const SearchControls = ({
           <SelectItem value="nearest">Nearest Renewal</SelectItem>
           <SelectItem value="expensive">Most Expensive</SelectItem>
           <SelectItem value="cheapest">Cheapest First</SelectItem>
+          <SelectItem value="expired">Expired</SelectItem>
         </SelectContent>
       </Select>
     </div>

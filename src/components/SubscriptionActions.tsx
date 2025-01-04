@@ -42,7 +42,7 @@ export const SubscriptionActions = ({
         </ProFeatureButton>
       )}
       
-      {!isPro && (
+      {!isPro ? (
         <Button
           variant="ghost"
           onClick={() => setShowProModal(true)}
@@ -50,6 +50,16 @@ export const SubscriptionActions = ({
         >
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 font-semibold">
             Go Pro
+          </span>
+        </Button>
+      ) : (
+        <Button
+          variant="ghost"
+          className="text-sm relative group cursor-default"
+          disabled
+        >
+          <span className="text-green-600 font-semibold">
+            Subscribed
           </span>
         </Button>
       )}

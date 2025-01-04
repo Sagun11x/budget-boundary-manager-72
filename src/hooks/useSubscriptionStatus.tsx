@@ -10,13 +10,16 @@ export const useSubscriptionStatus = () => {
   useEffect(() => {
     const checkStatus = async () => {
       if (!user) {
+        console.log("No user found, setting isPro to false");
         setIsPro(false);
         setIsLoading(false);
         return;
       }
 
       try {
+        console.log("Checking subscription status for user:", user.uid);
         const isProUser = await subscriptionService.checkSubscriptionStatus(user.uid);
+        console.log("Is pro user:", isProUser);
         setIsPro(isProUser);
       } catch (error) {
         console.error("Error checking subscription status:", error);

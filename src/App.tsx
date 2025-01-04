@@ -1,16 +1,20 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "@/pages/Index";
+import { Toaster } from "@/components/ui/toaster";
 import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
+import Terms from "@/pages/Terms";
+import ForgotPassword from "@/pages/ForgotPassword";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/dashboard" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/" element={<Index />} />
         </Routes>
         <Toaster />
       </AuthProvider>

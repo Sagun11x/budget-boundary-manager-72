@@ -3,13 +3,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,6 +19,10 @@ const Auth = () => {
     if (isLogin) {
       await signIn(email, password);
     } else {
+      if (!acceptedTerms) {
+        alert("Please accept the terms and conditions to continue");
+        return;
+      }
       await signUp(email, password, username);
     }
   };
@@ -54,9 +60,35 @@ const Auth = () => {
                 required
               />
             </div>
+
+            {!isLogin && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="terms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                />
+                <label htmlFor="terms" className="text-sm text-gray-600">
+                  I accept the{" "}
+                  <Link to="/terms" className="text-primary hover:underline">
+                    Terms and Conditions
+                  </Link>
+                </label>
+              </div>
+            )}
+
             <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700">
               {isLogin ? "Login" : "Sign Up"}
             </Button>
+
+            {isLogin && (
+              <div className="text-center">
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+            )}
+
             <Button
               type="button"
               variant="outline"
@@ -83,6 +115,7 @@ const Auth = () => {
               </svg>
               Continue with Google
             </Button>
+
             <Button
               type="button"
               variant="ghost"

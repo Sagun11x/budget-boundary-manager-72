@@ -1,133 +1,191 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { AdvancedOptions } from "@/components/AdvancedOptions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import { LogoPreview } from "@/components/LogoPreview";
-import type { Subscription } from "@/types/subscription";
+import { AdvancedOptions } from "@/components/AdvancedOptions";
 
 interface SubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (subscription: Subscription) => Promise<void>;
-  isPro: boolean;
+  onSave: (subscription: any) => void;
+  isPro?: boolean;
 }
 
-export function SubscriptionModal({ open, onOpenChange, onSave, isPro }: SubscriptionModalProps) {
+export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }: SubscriptionModalProps) {
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [cost, setCost] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [renewalPeriod, setRenewalPeriod] = useState({ number: 1, unit: "months" as const });
   const [logo, setLogo] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [customLogoUrl, setCustomLogoUrl] = useState("");
+  const [cost, setCost] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [renewalNumber, setRenewalNumber] = useState("");
+  const [renewalUnit, setRenewalUnit] = useState("days");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const subscription = {
-      name,
-      description,
-      cost,
-      purchaseDate,
-      renewalPeriod,
-      logo,
-    };
-    await onSave(subscription);
-    onOpenChange(false);
+  const fetchLogoFromName = async (serviceName: string) => {
+    if (!serviceName || customLogoUrl) return;
+    
+    const cleanName = serviceName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    try {
+      console.log("Attempting to fetch logo for:", cleanName);
+      
+      // Create an Image object to test if the logo exists
+      const img = new Image();
+      const logoUrl = `https://logo.clearbit.com/${cleanName}.com`;
+      
+      // Create a promise that resolves when the image loads or rejects on error
+      const imageLoadPromise = new Promise((resolve, reject) => {
+        img.onload = () => resolve(logoUrl);
+        img.onerror = () => reject(new Error('Logo not found'));
+        img.src = logoUrl;
+      });
+
+      // Wait for the image to load with a timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Logo fetch timeout')), 5000);
+      });
+
+      // Race between image loading and timeout
+      const result = await Promise.race([imageLoadPromise, timeoutPromise]);
+      
+      console.log("Logo URL set to:", result);
+      setLogo(result as string);
+      
+    } catch (error) {
+      console.log("Error checking logo:", error);
+      setLogo("");
+    }
   };
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value);
-    // Fetch logo based on name if needed
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (!customLogoUrl) {
+      fetchLogoFromName(value);
+    }
+  };
+
+  const handleSave = () => {
+    if (!name || !cost || !renewalNumber || !renewalUnit) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    onSave({
+      name,
+      logo: customLogoUrl || logo,
+      cost: parseFloat(cost),
+      purchaseDate,
+      renewalPeriod: {
+        number: parseInt(renewalNumber),
+        unit: renewalUnit,
+      },
+    });
+    onOpenChange(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setName("");
+    setLogo("");
+    setCustomLogoUrl("");
+    setCost("");
+    setPurchaseDate(new Date().toISOString().split('T')[0]);
+    setRenewalNumber("");
+    setRenewalUnit("days");
+    setShowAdvanced(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Subscription</DialogTitle>
+          <DialogTitle>Add New Subscription</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
             <Label htmlFor="name">Subscription Name</Label>
             <Input
               id="name"
               value={name}
-              onChange={handleNameChange}
-              placeholder="Netflix"
-              required
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="Subscription Name"
             />
-            <LogoPreview logo={logo} />
-            
-            {isPro && (
-              <AdvancedOptions
-                showAdvanced={showAdvanced}
-                setShowAdvanced={setShowAdvanced}
-                customLogoUrl={customLogoUrl}
-                setCustomLogoUrl={setCustomLogoUrl}
-                setLogo={setLogo}
-              />
-            )}
+            {name && <LogoPreview name={name} logo={customLogoUrl || logo} />}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Streaming service"
-            />
-          </div>
-
-          <div className="space-y-2">
+          <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>
             <Input
               id="cost"
+              type="number"
               value={cost}
               onChange={(e) => setCost(e.target.value)}
-              placeholder="9.99"
-              required
+              placeholder="Cost in USD"
             />
           </div>
-
-          <div className="space-y-2">
+          <div className="grid gap-2">
             <Label htmlFor="purchaseDate">Purchase Date</Label>
             <Input
               id="purchaseDate"
               type="date"
               value={purchaseDate}
               onChange={(e) => setPurchaseDate(e.target.value)}
-              required
             />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="renewalPeriod">Renewal Period</Label>
-            <Input
-              id="renewalPeriod"
-              value={renewalPeriod.number}
-              onChange={(e) => setRenewalPeriod({ ...renewalPeriod, number: Number(e.target.value) })}
-              placeholder="1"
-              required
-            />
-            <select
-              value={renewalPeriod.unit}
-              onChange={(e) => setRenewalPeriod({ ...renewalPeriod, unit: e.target.value as "days" | "weeks" | "months" | "years" })}
-            >
-              <option value="days">Days</option>
-              <option value="weeks">Weeks</option>
-              <option value="months">Months</option>
-              <option value="years">Years</option>
-            </select>
+          <div className="grid gap-2">
+            <Label>Renewal Period</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={renewalNumber}
+                onChange={(e) => setRenewalNumber(e.target.value)}
+                placeholder="Number"
+                className="flex-1"
+              />
+              <Select value={renewalUnit} onValueChange={setRenewalUnit}>
+                <SelectTrigger className="w-[110px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="days">Days</SelectItem>
+                  <SelectItem value="weeks">Weeks</SelectItem>
+                  <SelectItem value="months">Months</SelectItem>
+                  <SelectItem value="years">Years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          
-          <Button type="submit" className="w-full">
-            Add Subscription
+          {isPro && (
+            <AdvancedOptions
+              showAdvanced={showAdvanced}
+              setShowAdvanced={setShowAdvanced}
+              customLogoUrl={customLogoUrl}
+              setCustomLogoUrl={setCustomLogoUrl}
+              setLogo={setLogo}
+            />
+          )}
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
+            Cancel
           </Button>
-        </form>
+          <Button onClick={handleSave} className="bg-indigo-600 hover:bg-indigo-700">
+            Save
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

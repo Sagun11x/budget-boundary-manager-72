@@ -22,6 +22,9 @@ const Index = () => {
     handleDeleteSubscription,
   } = useSubscriptions();
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
+  const [sortBy, setSortBy] = useState("nearest");
 
   useEffect(() => {
     if (user) {
@@ -36,7 +39,14 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header logout={logout} />
+      <Header 
+        logout={logout}
+        isPro={isPro}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        onInfoClick={() => setShowInfo(true)}
+        onProClick={() => setShowProModal(true)}
+      />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           <SubscriptionActions
@@ -55,6 +65,8 @@ const Index = () => {
             onSave={onSave}
             onEdit={handleEditSubscription}
             onDelete={handleDeleteSubscription}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
           />
 
           {isPro && <SubscriptionBot subscriptions={subscriptions} />}

@@ -14,6 +14,8 @@ interface SubscriptionContentProps {
   onSave: (subscription: Subscription) => Promise<void>;
   onEdit: (subscription: Subscription) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  sortBy: string;
+  setSortBy: (value: string) => void;
 }
 
 export const SubscriptionContent = ({
@@ -23,10 +25,11 @@ export const SubscriptionContent = ({
   onSave,
   onEdit,
   onDelete,
+  sortBy,
+  setSortBy,
 }: SubscriptionContentProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [sortBy, setSortBy] = useState("nearest");
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
@@ -100,13 +103,25 @@ export const SubscriptionContent = ({
 
   return (
     <div className="space-y-6">
-      <SearchControls
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        onAddClick={handleAddClick}
-      />
+      <div className="md:block hidden">
+        <SearchControls
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          onAddClick={handleAddClick}
+        />
+      </div>
+      <div className="md:hidden">
+        <SearchControls
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={() => {}}
+          onAddClick={handleAddClick}
+          hideSortBy
+        />
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center items-center py-8">

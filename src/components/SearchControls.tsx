@@ -15,6 +15,7 @@ interface SearchControlsProps {
   sortBy: string;
   setSortBy: (value: string) => void;
   onAddClick: () => void;
+  hideSortBy?: boolean;
 }
 
 export const SearchControls = ({
@@ -23,6 +24,7 @@ export const SearchControls = ({
   sortBy,
   setSortBy,
   onAddClick,
+  hideSortBy = false,
 }: SearchControlsProps) => {
   return (
     <div className="space-y-4">
@@ -42,16 +44,18 @@ export const SearchControls = ({
           Add Subscription
         </Button>
       </div>
-      <Select value={sortBy} onValueChange={setSortBy}>
-        <SelectTrigger>
-          <SelectValue placeholder="Sort by" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="nearest">Nearest Renewal</SelectItem>
-          <SelectItem value="expensive">Most Expensive</SelectItem>
-          <SelectItem value="cheapest">Cheapest First</SelectItem>
-        </SelectContent>
-      </Select>
+      {!hideSortBy && (
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger>
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="nearest">Nearest Renewal</SelectItem>
+            <SelectItem value="expensive">Most Expensive</SelectItem>
+            <SelectItem value="cheapest">Cheapest First</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 };

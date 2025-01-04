@@ -3,6 +3,13 @@ import { LogOut } from "lucide-react";
 import { UserGreeting } from "@/components/UserGreeting";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   logout: () => void;
@@ -22,6 +29,13 @@ export const Header = ({
   onProClick = () => {},
 }: HeaderProps) => {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+
+  const getUserName = () => {
+    if (!user) return "";
+    if (user.displayName) return user.displayName;
+    return user.email?.split("@")[0] || "";
+  };
 
   return (
     <header className="bg-white shadow">
@@ -34,16 +48,19 @@ export const Header = ({
           
           <div className="flex items-center gap-2">
             {!isMobile && (
-              <>
-                <Button
-                  variant="ghost"
-                  onClick={logout}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="text-gray-700 hover:text-gray-900">
+                    {getUserName()}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={logout} className="text-red-500 hover:text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <MobileMenu
               logout={logout}

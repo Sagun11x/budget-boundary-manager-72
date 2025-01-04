@@ -95,11 +95,19 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Error initializing Firebase:', error);
+            showToast('Error initializing Firebase');
+        }
+        
         const db = firebase.firestore();
 
         // Toast notification function
         function showToast(message, duration = 3000) {
+            console.log('Toast message:', message);
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.style.display = 'block';
@@ -110,17 +118,24 @@
 
         // Format date
         function formatDate(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleString();
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleString();
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return 'Invalid date';
+            }
         }
 
         // Handle subscription action
         async function handleSubscriptionAction(subscriptionId, action) {
+            console.log(`Handling subscription action: ${action} for ID: ${subscriptionId}`);
             try {
                 await db.collection('subscriptions').doc(subscriptionId).update({
                     status: action,
                     updatedAt: new Date().toISOString()
                 });
+                console.log(`Subscription ${action} successful`);
                 showToast(`Subscription ${action} successfully`);
                 loadSubscriptions(); // Refresh the list
             } catch (error) {
@@ -131,13 +146,14 @@
 
         // Create subscription card
         function createSubscriptionCard(subscription) {
+            console.log('Creating card for subscription:', subscription);
             const card = document.createElement('div');
             card.className = 'subscription-card';
             card.innerHTML = `
                 <div class="subscription-info">
-                    <h3>User Email: ${subscription.userEmail}</h3>
-                    <p>Plan: ${subscription.planType}</p>
-                    <p>Cost: $${subscription.cost}</p>
+                    <h3>User Email: ${subscription.userEmail || 'N/A'}</h3>
+                    <p>Plan: ${subscription.planType || 'N/A'}</p>
+                    <p>Cost: $${subscription.cost || '0'}</p>
                     <p>Requested: ${formatDate(subscription.createdAt)}</p>
                 </div>
                 <div class="button-group">
@@ -160,6 +176,7 @@
 
         // Load subscriptions
         async function loadSubscriptions() {
+            console.log('Loading subscriptions...');
             const subscriptionsList = document.getElementById('subscriptions-list');
             subscriptionsList.innerHTML = ''; // Clear existing content
 
@@ -168,23 +185,31 @@
                     .where('status', '==', 'pending')
                     .get();
 
+                console.log('Subscription query completed');
+
                 if (snapshot.empty) {
+                    console.log('No pending subscriptions found');
                     subscriptionsList.innerHTML = '<p>No pending subscriptions</p>';
                     return;
                 }
 
+                console.log('Number of subscriptions found:', snapshot.size);
+                
                 snapshot.forEach(doc => {
                     const subscription = { id: doc.id, ...doc.data() };
+                    console.log('Processing subscription:', subscription);
                     const card = createSubscriptionCard(subscription);
                     subscriptionsList.appendChild(card);
                 });
             } catch (error) {
-                console.error('Error loading subscriptions:', error);
-                subscriptionsList.innerHTML = '<p>Error loading subscriptions</p>';
+                console.error('Detailed error loading subscriptions:', error);
+                subscriptionsList.innerHTML = `<p>Error loading subscriptions: ${error.message}</p>`;
+                showToast('Error loading subscriptions');
             }
         }
 
         // Initial load
+        console.log('Starting initial load of subscriptions');
         loadSubscriptions();
     </script>
 </body>

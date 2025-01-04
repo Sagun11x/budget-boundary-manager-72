@@ -55,12 +55,32 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
   };
 
   const calculateRenewalRatio = (subscription: Subscription) => {
-    const purchaseDate = new Date(subscription.purchaseDate);
+    const startDate = new Date(subscription.purchaseDate);
     const today = new Date();
-    const nextRenewal = addMonths(purchaseDate, 1);
-    
-    const totalPeriodDays = differenceInDays(nextRenewal, purchaseDate);
-    const daysElapsed = differenceInDays(today, purchaseDate);
+    let nextRenewal = startDate;
+    let previousRenewal = startDate;
+
+    // Find the next renewal date after today
+    while (nextRenewal <= today) {
+      previousRenewal = nextRenewal;
+      switch (subscription.renewalPeriod.unit) {
+        case "days":
+          nextRenewal = addDays(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "weeks":
+          nextRenewal = addWeeks(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "months":
+          nextRenewal = addMonths(nextRenewal, subscription.renewalPeriod.number);
+          break;
+        case "years":
+          nextRenewal = addYears(nextRenewal, subscription.renewalPeriod.number);
+          break;
+      }
+    }
+
+    const totalPeriodDays = differenceInDays(nextRenewal, previousRenewal);
+    const daysElapsed = differenceInDays(today, previousRenewal);
     const ratio = Math.max(0, Math.min(100, (daysElapsed / totalPeriodDays) * 100));
     
     return `${Math.round(ratio)}%`;

@@ -35,7 +35,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-export const SubscriptionAdmin = () => {
+const SubscriptionAdmin = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
@@ -150,3 +150,5 @@ export const SubscriptionAdmin = () => {
     </div>
   );
 };
+
+export default SubscriptionAdmin;

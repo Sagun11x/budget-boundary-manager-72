@@ -1,53 +1,37 @@
-import { Package, Edit, Trash2 } from "lucide-react";
-import { Card } from "./ui/card";
-import { Button } from "./ui/button";
-import { differenceInDays, addDays, addMonths, addYears, addWeeks } from "date-fns";
-import type { Subscription } from "@/types/subscription";
+import { Button } from "@/components/ui/button";
+import { Subscription } from "@/types/subscription";
+import { useEffect, useState } from "react";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
-  onEdit?: (subscription: Subscription) => void;
-  onDelete?: (id: string) => void;
+  onEdit: (subscription: Subscription) => void;
+  onDelete: (id: string) => void;
 }
 
-export const SubscriptionCard = ({
+export function SubscriptionCard({
   subscription,
   onEdit,
-  onDelete,
-}: SubscriptionCardProps) => {
-  const calculateNextRenewal = (purchaseDate: string, renewalPeriod: { number: number; unit: string }) => {
-    const startDate = new Date(purchaseDate);
-    const today = new Date();
-    let nextRenewal = startDate;
+  onDelete
+}: SubscriptionCardProps) {
+  const [daysLeft, setDaysLeft] = useState<number>(0);
 
-    while (nextRenewal <= today) {
-      switch (renewalPeriod.unit) {
-        case "days":
-          nextRenewal = addDays(nextRenewal, renewalPeriod.number);
-          break;
-        case "weeks":
-          nextRenewal = addWeeks(nextRenewal, renewalPeriod.number);
-          break;
-        case "months":
-          nextRenewal = addMonths(nextRenewal, renewalPeriod.number);
-          break;
-        case "years":
-          nextRenewal = addYears(nextRenewal, renewalPeriod.number);
-          break;
-      }
-    }
+  useEffect(() => {
+    const calculateDaysLeft = () => {
+      const now = new Date();
+      const renewalDate = new Date(subscription.renewalDate);
+      const timeDiff = renewalDate.getTime() - now.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      setDaysLeft(daysDiff);
+    };
 
-    return nextRenewal;
-  };
-
-  const nextRenewal = calculateNextRenewal(subscription.purchaseDate, subscription.renewalPeriod);
-  const daysLeft = differenceInDays(nextRenewal, new Date());
-  const cost = Number(subscription.cost) || 0;
+    calculateDaysLeft();
+  }, [subscription.renewalDate]);
 
   const getDaysLeftColor = (days: number) => {
+    if (days <= 0) return "text-red-500";
     if (days <= 3) return "text-red-500";
     if (days <= 7) return "text-orange-500";
-    return "text-green-500";
+    return "bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text";
   };
 
   const getDaysLeftText = (days: number) => {
@@ -56,57 +40,16 @@ export const SubscriptionCard = ({
   };
 
   return (
-    <Card className="p-4 relative group">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            {subscription.logo ? (
-              <img 
-                src={subscription.logo} 
-                alt={`${subscription.name} logo`}
-                className="h-6 w-6 object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = "/placeholder.svg";
-                  e.currentTarget.onerror = null;
-                }}
-              />
-            ) : (
-              <Package className="h-6 w-6 text-gray-600" />
-            )}
-          </div>
-          <div className="flex flex-col items-start">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium">{subscription.name}</h3>
-              <span className="text-gray-600">- ${cost.toFixed(2)}</span>
-            </div>
-            <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
-              {getDaysLeftText(daysLeft)}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onEdit && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(subscription)}
-              className="h-8 w-8"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(subscription.id)}
-              className="h-8 w-8 text-red-500 hover:text-red-600"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+    <div className="bg-white shadow-md rounded-lg p-4 mb-4">
+      <h2 className="text-lg font-bold">{subscription.name}</h2>
+      <p className="text-gray-600">Cost: ${subscription.cost}</p>
+      <p className={`font-semibold ${getDaysLeftColor(daysLeft)}`}>
+        {getDaysLeftText(daysLeft)}
+      </p>
+      <div className="flex justify-between mt-4">
+        <Button onClick={() => onEdit(subscription)}>Edit</Button>
+        <Button variant="destructive" onClick={() => onDelete(subscription.id)}>Delete</Button>
       </div>
-    </Card>
+    </div>
   );
-};
+}

@@ -9,6 +9,7 @@ export const useSubscriptionStatus = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let retryTimeout: NodeJS.Timeout;
 
     const checkStatus = async () => {
       if (!user) {
@@ -31,6 +32,8 @@ export const useSubscriptionStatus = () => {
       } catch (error) {
         console.error("Error checking subscription status:", error);
         if (isMounted) {
+          // Retry after 3 seconds on error
+          retryTimeout = setTimeout(checkStatus, 3000);
           setIsPro(false);
           setIsLoading(false);
         }
@@ -41,6 +44,9 @@ export const useSubscriptionStatus = () => {
 
     return () => {
       isMounted = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
     };
   }, [user]);
 

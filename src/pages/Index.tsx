@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { SearchControls } from "@/components/SearchControls";
@@ -14,6 +14,7 @@ import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionActions } from "@/components/SubscriptionActions";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
+import type { Subscription } from "@/types/subscription";
 
 const Index = () => {
   const { user, logout } = useAuth();
@@ -24,37 +25,38 @@ const Index = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [sortBy, setSortBy] = useState("nearest");
-  const [subscriptions, setSubscriptions] = useState([]);
-  const [editingSubscription, setEditingSubscription] = useState(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadSubscriptions = async () => {
-      try {
-        if (user) {
-          const localSubs = await indexedDBService.getAll();
-          if (localSubs.length > 0) {
-            setSubscriptions(localSubs);
-          }
-
-          const firestoreSubs = await firestoreService.getAll(user.uid);
-          await indexedDBService.sync(firestoreSubs);
-          setSubscriptions(firestoreSubs);
-        }
-      } catch (error) {
-        console.error('Error loading subscriptions:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load subscriptions",
-          variant: "destructive",
-        });
-      }
-    };
-
-    loadSubscriptions();
+  const loadSubscriptions = useCallback(async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      console.log("Loading subscriptions for user:", user.uid);
+      const firestoreSubs = await firestoreService.getAll(user.uid);
+      console.log("Loaded subscriptions:", firestoreSubs);
+      await indexedDBService.sync(firestoreSubs);
+      setSubscriptions(firestoreSubs);
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscriptions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [user, toast]);
 
-  const handleSaveSubscription = async (subscription) => {
+  useEffect(() => {
+    loadSubscriptions();
+  }, [loadSubscriptions]);
+
+  const handleSaveSubscription = async (subscription: Subscription) => {
     if (!isPro && subscriptions.length >= 5) {
       setShowSubscriptionLimitAlert(true);
       return;
@@ -66,11 +68,12 @@ const Index = () => {
         const id = await firestoreService.add(subscriptionWithUser);
         const finalSubscription = { ...subscriptionWithUser, id };
         await indexedDBService.add(finalSubscription);
-        setSubscriptions([...subscriptions, finalSubscription]);
+        setSubscriptions(prev => [...prev, finalSubscription]);
         toast({
           title: "Success",
           description: "Subscription added successfully",
         });
+        await loadSubscriptions(); // Reload to ensure consistency
       }
     } catch (error) {
       console.error('Error saving subscription:', error);
@@ -83,13 +86,11 @@ const Index = () => {
     setShowModal(false);
   };
 
-  const handleEditSubscription = async (subscription) => {
+  const handleEditSubscription = async (subscription: Subscription) => {
     try {
       await firestoreService.update(subscription);
       await indexedDBService.update(subscription);
-      setSubscriptions(subscriptions.map(sub => 
-        sub.id === subscription.id ? subscription : sub
-      ));
+      await loadSubscriptions(); // Reload to ensure consistency
       toast({
         title: "Success",
         description: "Subscription updated successfully",
@@ -105,11 +106,11 @@ const Index = () => {
     setEditingSubscription(null);
   };
 
-  const handleDeleteSubscription = async (id) => {
+  const handleDeleteSubscription = async (id: string) => {
     try {
       await firestoreService.delete(id);
       await indexedDBService.delete(id);
-      setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+      await loadSubscriptions(); // Reload to ensure consistency
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
@@ -124,7 +125,7 @@ const Index = () => {
     }
   };
 
-  const getSortedSubscriptions = () => {
+  const getSortedSubscriptions = useCallback(() => {
     return [...subscriptions].sort((a, b) => {
       switch (sortBy) {
         case "nearest":
@@ -139,7 +140,16 @@ const Index = () => {
           return 0;
       }
     });
-  };
+  }, [subscriptions, sortBy]);
+
+  const filteredAndSortedSubscriptions = useCallback(() => {
+    const sorted = getSortedSubscriptions();
+    if (!searchTerm) return sorted;
+    return sorted.filter(sub => 
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [getSortedSubscriptions, searchTerm]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -171,11 +181,17 @@ const Index = () => {
               }}
             />
 
-            <SubscriptionList
-              subscriptions={getSortedSubscriptions()}
-              onEdit={setEditingSubscription}
-              onDelete={handleDeleteSubscription}
-            />
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            ) : (
+              <SubscriptionList
+                subscriptions={filteredAndSortedSubscriptions()}
+                onEdit={setEditingSubscription}
+                onDelete={handleDeleteSubscription}
+              />
+            )}
           </div>
         </div>
 

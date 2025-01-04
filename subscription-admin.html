@@ -76,6 +76,8 @@
     <div class="container">
         <div class="header">
             <h1>Subscription Admin Panel</h1>
+            <div id="auth-status"></div>
+            <button id="login-btn" class="button" style="display: none;">Login with Google</button>
         </div>
         <div id="subscriptions-list"></div>
     </div>
@@ -104,6 +106,36 @@
         }
         
         const db = firebase.firestore();
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        // Authentication state observer
+        auth.onAuthStateChanged((user) => {
+            const authStatus = document.getElementById('auth-status');
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (user) {
+                console.log('User is signed in:', user.email);
+                authStatus.textContent = `Logged in as: ${user.email}`;
+                loginBtn.style.display = 'none';
+                loadSubscriptions();
+            } else {
+                console.log('No user signed in');
+                authStatus.textContent = 'Not logged in';
+                loginBtn.style.display = 'block';
+                document.getElementById('subscriptions-list').innerHTML = '';
+            }
+        });
+
+        // Login function
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast('Login failed: ' + error.message);
+            }
+        });
 
         // Toast notification function
         function showToast(message, duration = 3000) {
@@ -129,18 +161,24 @@
 
         // Handle subscription action
         async function handleSubscriptionAction(subscriptionId, action) {
+            if (!auth.currentUser) {
+                showToast('Please login first');
+                return;
+            }
+
             console.log(`Handling subscription action: ${action} for ID: ${subscriptionId}`);
             try {
                 await db.collection('subscriptions').doc(subscriptionId).update({
                     status: action,
-                    updatedAt: new Date().toISOString()
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: auth.currentUser.email
                 });
                 console.log(`Subscription ${action} successful`);
                 showToast(`Subscription ${action} successfully`);
-                loadSubscriptions(); // Refresh the list
+                loadSubscriptions();
             } catch (error) {
                 console.error('Error updating subscription:', error);
-                showToast('Error updating subscription');
+                showToast('Error updating subscription: ' + error.message);
             }
         }
 
@@ -176,6 +214,11 @@
 
         // Load subscriptions
         async function loadSubscriptions() {
+            if (!auth.currentUser) {
+                console.log('No authenticated user, skipping load');
+                return;
+            }
+
             console.log('Loading subscriptions...');
             const subscriptionsList = document.getElementById('subscriptions-list');
             subscriptionsList.innerHTML = ''; // Clear existing content
@@ -204,13 +247,9 @@
             } catch (error) {
                 console.error('Detailed error loading subscriptions:', error);
                 subscriptionsList.innerHTML = `<p>Error loading subscriptions: ${error.message}</p>`;
-                showToast('Error loading subscriptions');
+                showToast('Error loading subscriptions: ' + error.message);
             }
         }
-
-        // Initial load
-        console.log('Starting initial load of subscriptions');
-        loadSubscriptions();
     </script>
 </body>
 </html>

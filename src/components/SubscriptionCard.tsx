@@ -85,7 +85,7 @@ export const SubscriptionCard = ({
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h3 className="font-medium">{subscription.name}</h3>
-                <span className="text-gray-600">- ${subscription.cost.toFixed(2)}</span>
+                <span className="text-gray-600">- ${typeof subscription.cost === 'number' ? subscription.cost.toFixed(2) : '0.00'}</span>
               </div>
               <p className="text-sm text-gray-500">{daysLeft} days left</p>
             </div>

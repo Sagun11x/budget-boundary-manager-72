@@ -7,16 +7,16 @@ import SubscriptionAdmin from "@/pages/SubscriptionAdmin";
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
+    <AuthProvider>
+      <Router>
         <Routes>
           <Route path="/" element={<Auth />} />
           <Route path="/dashboard" element={<Index />} />
           <Route path="/admin/subscriptions" element={<SubscriptionAdmin />} />
         </Routes>
         <Toaster />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 

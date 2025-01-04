@@ -38,18 +38,20 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
     
     try {
       console.log("Attempting to fetch logo for:", cleanName);
-      const response = await fetch(`https://logo.clearbit.com/${cleanName}.com`);
       
-      if (response.ok) {
-        const logoUrl = `https://logo.clearbit.com/${cleanName}.com`;
-        console.log("Logo fetched successfully:", logoUrl);
-        setLogo(logoUrl);
-      } else {
-        console.log("Logo fetch failed, clearing logo URL");
-        setLogo("");
-      }
+      // First try to check if the image exists
+      const checkResponse = await fetch(`https://logo.clearbit.com/${cleanName}.com`, {
+        method: 'HEAD',
+        mode: 'no-cors' // This prevents CORS errors during the check
+      });
+      
+      // If we get here, the image likely exists, set the URL
+      const logoUrl = `https://logo.clearbit.com/${cleanName}.com`;
+      setLogo(logoUrl);
+      console.log("Logo URL set to:", logoUrl);
+      
     } catch (error) {
-      console.log("Error fetching logo:", error);
+      console.log("Error checking logo:", error);
       setLogo("");
     }
   };
@@ -73,7 +75,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
 
     onSave({
       name,
-      logo,
+      logo: customLogoUrl || logo,
       cost: parseFloat(cost),
       purchaseDate,
       renewalPeriod: {
@@ -111,7 +113,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Subscription Name"
             />
-            {name && <LogoPreview name={name} logo={logo} />}
+            {name && <LogoPreview name={name} logo={customLogoUrl || logo} />}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>

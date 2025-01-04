@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Bot, Brain, MessageSquare } from "lucide-react";
 
 interface ProPlanModalProps {
   open: boolean;
@@ -31,20 +31,24 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
 
   const features = [
     "Unlimited Listing",
-    "Priority Support",
+    "AI-Powered Subscription Insights",
+    "Smart Renewal Predictions",
+    "24/7 AI Chat Assistant",
     "Advanced Analytics"
   ];
+
+  const regularPrice = isLifetime ? 149 : 49;
+  const discountedPrice = isLifetime ? 49 : 29;
+  const savings = regularPrice - discountedPrice;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-4 flex items-center justify-center gap-2">
-            <Sparkles className="w-6 h-6 text-yellow-400" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-              Go Pro
-            </span>
-            <Sparkles className="w-6 h-6 text-yellow-400" />
+            <Bot className="w-6 h-6" />
+            <span>Pro + AI</span>
+            <Brain className="w-6 h-6" />
           </DialogTitle>
         </DialogHeader>
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -55,7 +59,6 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             <Switch
               checked={isLifetime}
               onCheckedChange={setIsLifetime}
-              className="data-[state=checked]:bg-purple-500"
             />
             <span className={`text-sm transition-colors duration-200 ${isLifetime ? 'text-primary font-semibold' : 'text-gray-500'}`}>
               Lifetime
@@ -68,12 +71,25 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             animate={{ scale: isLifetime ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 0.3 }}
           >
-            <p className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
-              {isLifetime ? "$49" : "$29"}
+            <div className="flex items-center justify-center gap-2">
+              <p className="text-4xl font-bold">
+                ${discountedPrice}
+              </p>
+              <span className="text-sm text-gray-500 line-through">
+                ${regularPrice}
+              </span>
+            </div>
+            <p className="text-sm text-green-600 font-medium mt-1">
+              You save ${savings}! 🎉
             </p>
             <p className="text-sm text-gray-500 mt-1">
               {isLifetime ? "One-time payment" : "Every 6 months"}
             </p>
+            {isLifetime && (
+              <p className="text-xs text-primary mt-2 bg-primary/5 p-2 rounded-lg">
+                Limited time offer! Get lifetime access at 67% off
+              </p>
+            )}
           </motion.div>
 
           <div className="space-y-3 mb-6">
@@ -87,10 +103,10 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
               >
                 <div className={`
                   w-6 h-6 rounded-full flex items-center justify-center mr-3
-                  ${isHovered === index ? 'bg-green-100' : 'bg-gray-100'}
+                  ${isHovered === index ? 'bg-primary/10' : 'bg-gray-100'}
                   transition-colors duration-200
                 `}>
-                  <Check className={`w-4 h-4 ${isHovered === index ? 'text-green-500' : 'text-gray-400'}`} />
+                  <Check className={`w-4 h-4 ${isHovered === index ? 'text-primary' : 'text-gray-400'}`} />
                 </div>
                 <span className={`${isHovered === index ? 'text-primary font-medium' : 'text-gray-600'}`}>
                   {feature}
@@ -100,10 +116,11 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
           </div>
 
           <Button 
-            className="w-full bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 hover:opacity-90 transition-opacity"
+            className="w-full bg-primary hover:bg-primary/90 transition-colors group"
             onClick={handlePurchase}
           >
-            Choose Plan
+            <span>Choose Plan</span>
+            <MessageSquare className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Button>
         </div>
       </DialogContent>

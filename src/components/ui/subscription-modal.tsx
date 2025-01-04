@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
   const [renewalNumber, setRenewalNumber] = useState("");
   const [renewalUnit, setRenewalUnit] = useState("days");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (name && !logo) {
@@ -34,7 +36,30 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
     }
   }, [name]);
 
+  const validateLogoUrl = (url: string) => {
+    if (!url) return true;
+    
+    const isGif = url.toLowerCase().endsWith('.gif');
+    if (isGif && !isPro) {
+      toast({
+        title: "Pro Feature Required",
+        description: "GIF logos are only available for pro users. Please upgrade to use this feature.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const handleLogoChange = (url: string) => {
+    if (validateLogoUrl(url)) {
+      setLogo(url);
+    }
+  };
+
   const handleSave = () => {
+    if (!validateLogoUrl(logo)) return;
+
     onSave({
       name,
       logo,
@@ -129,11 +154,11 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               </Button>
               {showAdvanced && (
                 <div className="grid gap-2">
-                  <Label htmlFor="logo">Custom Logo URL</Label>
+                  <Label htmlFor="logo">Custom Logo URL {isPro && <span className="text-xs text-gray-500">(GIFs supported)</span>}</Label>
                   <Input
                     id="logo"
                     value={logo}
-                    onChange={(e) => setLogo(e.target.value)}
+                    onChange={(e) => handleLogoChange(e.target.value)}
                     placeholder="https://example.com/logo.png"
                   />
                 </div>

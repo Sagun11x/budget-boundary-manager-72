@@ -7,6 +7,7 @@ import { SubscriptionContent } from "@/components/SubscriptionContent";
 import { SubscriptionActions } from "@/components/SubscriptionActions";
 import { Analytics } from "@/components/Analytics";
 import { SubscriptionBot } from "@/components/SubscriptionBot";
+import { UserGreeting } from "@/components/UserGreeting";
 import type { Subscription } from "@/types/subscription";
 
 const Index = () => {
@@ -45,6 +46,8 @@ const Index = () => {
             showAnalytics={showAnalytics}
             setShowAnalytics={setShowAnalytics}
           />
+
+          <UserGreeting />
 
           {isPro && showAnalytics && <Analytics subscriptions={subscriptions} />}
 

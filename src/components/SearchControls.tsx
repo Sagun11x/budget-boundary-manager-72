@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SearchControlsProps {
   searchTerm: string;
@@ -26,10 +27,12 @@ export const SearchControls = ({
   onAddClick,
   hideSortBy = false,
 }: SearchControlsProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <div className="relative flex-1">
+        <div className="relative flex-1 md:flex-none md:w-auto w-[80%]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
@@ -39,9 +42,12 @@ export const SearchControls = ({
             className="pl-10"
           />
         </div>
-        <Button onClick={onAddClick} className="whitespace-nowrap">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Subscription
+        <Button 
+          onClick={onAddClick} 
+          className="whitespace-nowrap md:w-auto w-[20%]"
+        >
+          <Plus className="h-4 w-4 md:mr-2" />
+          {!isMobile && "Add Subscription"}
         </Button>
       </div>
       {!hideSortBy && (

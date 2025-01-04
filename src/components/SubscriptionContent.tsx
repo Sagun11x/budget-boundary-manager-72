@@ -28,45 +28,12 @@ export const SubscriptionContent = ({
   const [sortBy, setSortBy] = useState("nearest");
   const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
   const [showSubscriptionLimitAlert, setShowSubscriptionLimitAlert] = useState(false);
-  const [isOperationLoading, setIsOperationLoading] = useState(false);
 
   const handleAddClick = () => {
     if (!isPro && subscriptions.length >= 5) {
       setShowSubscriptionLimitAlert(true);
     } else {
       setShowModal(true);
-    }
-  };
-
-  const handleSave = async (subscription: Subscription) => {
-    if (isOperationLoading) return;
-    setIsOperationLoading(true);
-    try {
-      await onSave(subscription);
-      setShowModal(false);
-    } finally {
-      setIsOperationLoading(false);
-    }
-  };
-
-  const handleEdit = async (subscription: Subscription) => {
-    if (isOperationLoading) return;
-    setIsOperationLoading(true);
-    try {
-      await onEdit(subscription);
-      setEditingSubscription(null);
-    } finally {
-      setIsOperationLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (isOperationLoading) return;
-    setIsOperationLoading(true);
-    try {
-      await onDelete(id);
-    } finally {
-      setIsOperationLoading(false);
     }
   };
 
@@ -78,9 +45,9 @@ export const SubscriptionContent = ({
           const bNextRenewal = new Date(b.purchaseDate);
           return aNextRenewal.getTime() - bNextRenewal.getTime();
         case "expensive":
-          return b.cost - a.cost;
+          return (Number(b.cost) || 0) - (Number(a.cost) || 0);
         case "cheapest":
-          return a.cost - b.cost;
+          return (Number(a.cost) || 0) - (Number(b.cost) || 0);
         default:
           return 0;
       }
@@ -106,7 +73,7 @@ export const SubscriptionContent = ({
         onAddClick={handleAddClick}
       />
 
-      {(isLoading || isOperationLoading) ? (
+      {isLoading ? (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         </div>
@@ -114,21 +81,21 @@ export const SubscriptionContent = ({
         <SubscriptionList
           subscriptions={filteredAndSortedSubscriptions()}
           onEdit={setEditingSubscription}
-          onDelete={handleDelete}
+          onDelete={onDelete}
         />
       )}
 
       <SubscriptionModal
         open={showModal}
         onOpenChange={setShowModal}
-        onSave={handleSave}
+        onSave={onSave}
       />
 
       <SubscriptionEdit
         subscription={editingSubscription}
         open={!!editingSubscription}
         onOpenChange={(open) => !open && setEditingSubscription(null)}
-        onSave={handleEdit}
+        onSave={onEdit}
       />
 
       <ProFeatureAlert

@@ -15,6 +15,7 @@ const Index = () => {
   const {
     subscriptions,
     isLoading,
+    isOperationInProgress,
     loadSubscriptions,
     handleSaveSubscription,
     handleEditSubscription,
@@ -33,14 +34,6 @@ const Index = () => {
     await handleSaveSubscription(subscriptionData);
   };
 
-  const onEdit = async (subscription: Subscription): Promise<void> => {
-    await handleEditSubscription(subscription);
-  };
-
-  const onDelete = async (id: string): Promise<void> => {
-    await handleDeleteSubscription(id);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header logout={logout} />
@@ -57,11 +50,11 @@ const Index = () => {
 
           <SubscriptionContent
             subscriptions={subscriptions}
-            isLoading={isLoading}
+            isLoading={isLoading || isOperationInProgress}
             isPro={isPro}
             onSave={onSave}
-            onEdit={onEdit}
-            onDelete={onDelete}
+            onEdit={handleEditSubscription}
+            onDelete={handleDeleteSubscription}
           />
 
           {isPro && <SubscriptionBot subscriptions={subscriptions} />}

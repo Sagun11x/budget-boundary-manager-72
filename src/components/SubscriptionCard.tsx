@@ -25,12 +25,14 @@ interface SubscriptionCardProps {
   subscription: Subscription;
   onDelete?: (id: string) => void;
   onEdit?: (subscription: Subscription) => void;
+  disabled?: boolean;
 }
 
 export const SubscriptionCard = ({
   subscription,
   onDelete,
   onEdit,
+  disabled = false,
 }: SubscriptionCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -61,6 +63,7 @@ export const SubscriptionCard = ({
 
   const nextRenewal = calculateNextRenewal(subscription.purchaseDate, subscription.renewalPeriod);
   const daysLeft = differenceInDays(nextRenewal, new Date());
+  const cost = Number(subscription.cost) || 0;
 
   return (
     <>
@@ -85,24 +88,33 @@ export const SubscriptionCard = ({
             <div className="flex flex-col items-start">
               <div className="flex items-center gap-2">
                 <h3 className="font-medium">{subscription.name}</h3>
-                <span className="text-gray-600">- ${typeof subscription.cost === 'number' ? subscription.cost.toFixed(2) : '0.00'}</span>
+                <span className="text-gray-600">- ${cost.toFixed(2)}</span>
               </div>
               <p className="text-sm text-gray-500">{daysLeft} days left</p>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8"
+                disabled={disabled}
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit?.(subscription)}>
+              <DropdownMenuItem 
+                onClick={() => onEdit?.(subscription)}
+                disabled={disabled}
+              >
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="text-red-600 focus:text-red-600"
                 onClick={() => setShowDeleteDialog(true)}
+                disabled={disabled}
               >
                 Delete
               </DropdownMenuItem>
@@ -127,6 +139,7 @@ export const SubscriptionCard = ({
                 setShowDeleteDialog(false);
               }}
               className="bg-red-600 hover:bg-red-700"
+              disabled={disabled}
             >
               Delete
             </AlertDialogAction>

@@ -10,6 +10,7 @@ export const useSubscriptions = () => {
   const { toast } = useToast();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOperationInProgress, setIsOperationInProgress] = useState(false);
 
   const loadSubscriptions = useCallback(async () => {
     if (!user) {
@@ -19,6 +20,7 @@ export const useSubscriptions = () => {
     }
     
     try {
+      setIsLoading(true);
       const firestoreSubs = await firestoreService.getAll(user.uid);
       await indexedDBService.sync(firestoreSubs);
       setSubscriptions(firestoreSubs);
@@ -36,12 +38,18 @@ export const useSubscriptions = () => {
   }, [user, toast]);
 
   const handleSaveSubscription = async (subscription: Omit<Subscription, 'id' | 'userId'>) => {
-    if (!user) return;
+    if (!user || isOperationInProgress) return;
     
+    setIsOperationInProgress(true);
     try {
-      const subscriptionWithUser = { ...subscription, userId: user.uid } as Subscription;
-      const id = await firestoreService.add(subscriptionWithUser);
-      await loadSubscriptions(); // Reload the list after saving
+      const subscriptionWithUser = { 
+        ...subscription, 
+        userId: user.uid,
+        cost: Number(subscription.cost) || 0
+      } as Subscription;
+      
+      await firestoreService.add(subscriptionWithUser);
+      await loadSubscriptions();
       toast({
         title: "Success",
         description: "Subscription added successfully",
@@ -53,14 +61,22 @@ export const useSubscriptions = () => {
         description: "Failed to save subscription. Please try again.",
         variant: "destructive",
       });
-      throw error;
+    } finally {
+      setIsOperationInProgress(false);
     }
   };
 
   const handleEditSubscription = async (subscription: Subscription) => {
+    if (isOperationInProgress) return;
+    
+    setIsOperationInProgress(true);
     try {
-      await firestoreService.update(subscription);
-      await loadSubscriptions(); // Reload the list after editing
+      const updatedSubscription = {
+        ...subscription,
+        cost: Number(subscription.cost) || 0
+      };
+      await firestoreService.update(updatedSubscription);
+      await loadSubscriptions();
       toast({
         title: "Success",
         description: "Subscription updated successfully",
@@ -72,14 +88,18 @@ export const useSubscriptions = () => {
         description: "Failed to update subscription. Please try again.",
         variant: "destructive",
       });
-      throw error;
+    } finally {
+      setIsOperationInProgress(false);
     }
   };
 
   const handleDeleteSubscription = async (id: string) => {
+    if (isOperationInProgress) return;
+    
+    setIsOperationInProgress(true);
     try {
       await firestoreService.delete(id);
-      await loadSubscriptions(); // Reload the list after deleting
+      await loadSubscriptions();
       toast({
         title: "Success",
         description: "Subscription deleted successfully",
@@ -91,13 +111,15 @@ export const useSubscriptions = () => {
         description: "Failed to delete subscription. Please try again.",
         variant: "destructive",
       });
-      throw error;
+    } finally {
+      setIsOperationInProgress(false);
     }
   };
 
   return {
     subscriptions,
     isLoading,
+    isOperationInProgress,
     loadSubscriptions,
     handleSaveSubscription,
     handleEditSubscription,

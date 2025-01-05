@@ -2,14 +2,12 @@ import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import type { Subscription } from "@/types/subscription";
 import { calculateAnalytics } from "@/utils/analyticsUtils";
-import { SubscriptionBarChart } from "./SubscriptionBarChart";
 
 interface AnalyticsProps {
   subscriptions: Subscription[];
 }
 
 export const Analytics = ({ subscriptions }: AnalyticsProps) => {
-  const [dateRange, setDateRange] = useState<number>(6);
   const analytics = calculateAnalytics(subscriptions);
 
   return (
@@ -48,12 +46,6 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
           )}
         </div>
       </Card>
-
-      <SubscriptionBarChart 
-        subscriptions={subscriptions}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-      />
     </div>
   );
 };

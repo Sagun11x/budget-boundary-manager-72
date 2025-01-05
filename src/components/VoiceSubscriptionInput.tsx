@@ -87,12 +87,12 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
         recognition.continuous = false;
         recognition.interimResults = false;
 
-        recognition.onresult = (event) => {
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
           const transcript = event.results[0][0].transcript;
           processVoiceInput(transcript);
         };
 
-        recognition.onerror = (event) => {
+        recognition.onerror = (event: SpeechRecognitionEvent) => {
           console.error('Speech recognition error:', event.error);
           toast({
             title: "Error",

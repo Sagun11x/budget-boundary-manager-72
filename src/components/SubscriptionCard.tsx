@@ -57,7 +57,7 @@ export const SubscriptionCard = ({
 
   return (
     <Card className="p-4 relative group">
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full gap-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             {subscription.logo ? (
@@ -73,12 +73,7 @@ export const SubscriptionCard = ({
             ) : (
               <Package className="h-10 w-10 text-gray-600" />
             )}
-            <div className="flex flex-col items-start">
-              <h3 className="font-medium">{subscription.name}</h3>
-              <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
-                {getDaysLeftText(daysLeft)}
-              </p>
-            </div>
+            <h3 className="font-medium">{subscription.name}</h3>
           </div>
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             {onEdit && (
@@ -103,7 +98,10 @@ export const SubscriptionCard = ({
             )}
           </div>
         </div>
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-between items-center">
+          <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
+            {getDaysLeftText(daysLeft)}
+          </p>
           <span className="text-gray-600">
             ${cost.toFixed(2)} {subscription.currency}
           </span>

@@ -47,6 +47,7 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
           "shouldAdd": boolean (true if this is a request to add a subscription)
         }
         If the text doesn't contain subscription information or isn't a request to add a subscription, set shouldAdd to false.
+        The text must explicitly mention adding or creating a subscription to set shouldAdd to true.
         Example: For "Add Netflix subscription for $15.99 per month", return:
         {
           "name": "Netflix",
@@ -73,7 +74,8 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
     const totalMonthly = subscriptions.reduce((acc, sub) => acc + sub.cost, 0);
     return `Current context: You have ${subscriptions.length} subscriptions with a total monthly cost of $${totalMonthly}. 
     The subscriptions are: ${subscriptions.map(sub => `${sub.name} ($${sub.cost}/month)`).join(", ")}.
-    Please provide a brief and focused response in 2-3 sentences maximum.`;
+    If the user wants to add a subscription, extract the subscription details and add it.
+    Otherwise, provide a brief and focused response in 2-3 sentences maximum.`;
   };
 
   const handleSendMessage = async () => {
@@ -88,6 +90,7 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
         // If it's a subscription addition request and we have the onSave handler
         await onSave({
           ...subscriptionData,
+          currency: "USD",
           purchaseDate: new Date().toISOString().split('T')[0],
         });
         

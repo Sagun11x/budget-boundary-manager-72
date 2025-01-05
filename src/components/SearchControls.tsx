@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,6 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VoiceSubscriptionModal } from "./VoiceSubscriptionModal";
+import { useState } from "react";
 
 interface SearchControlsProps {
   searchTerm: string;
@@ -16,6 +18,7 @@ interface SearchControlsProps {
   sortBy: string;
   setSortBy: (value: string) => void;
   onAddClick: () => void;
+  onSave: (subscription: any) => Promise<void>;
   hideSortBy?: boolean;
 }
 
@@ -25,9 +28,11 @@ export const SearchControls = ({
   sortBy,
   setSortBy,
   onAddClick,
+  onSave,
   hideSortBy = false,
 }: SearchControlsProps) => {
   const isMobile = useIsMobile();
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   return (
     <div className="space-y-4 md:space-y-0">
@@ -42,13 +47,22 @@ export const SearchControls = ({
             className="pl-10"
           />
         </div>
-        <Button 
-          onClick={onAddClick} 
-          className="whitespace-nowrap md:w-[20%] w-[20%]"
-        >
-          <Plus className="h-4 w-4 md:mr-2" />
-          {!isMobile && "Add Subscription"}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onAddClick} 
+            className="whitespace-nowrap"
+          >
+            <Plus className="h-4 w-4 md:mr-2" />
+            {!isMobile && "Add Subscription"}
+          </Button>
+          <Button
+            onClick={() => setShowVoiceModal(true)}
+            variant="outline"
+            size="icon"
+          >
+            <Mic className="h-4 w-4" />
+          </Button>
+        </div>
         {!hideSortBy && (
           <div className="w-full md:w-[20%]">
             <Select value={sortBy} onValueChange={setSortBy}>
@@ -64,6 +78,12 @@ export const SearchControls = ({
           </div>
         )}
       </div>
+
+      <VoiceSubscriptionModal
+        open={showVoiceModal}
+        onOpenChange={setShowVoiceModal}
+        onSave={onSave}
+      />
     </div>
   );
 };

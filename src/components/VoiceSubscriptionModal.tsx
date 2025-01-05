@@ -42,20 +42,17 @@ export const VoiceSubscriptionModal = ({
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.continuous = false; // Changed to false to ensure we get one complete utterance
+      recognition.interimResults = false; // Changed to false to get only final results
 
       recognition.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map(result => result[0].transcript)
-          .join("");
-        setTranscript(transcript);
+        const finalTranscript = event.results[0][0].transcript;
+        setTranscript(finalTranscript);
+        handleSubmit(finalTranscript); // Automatically process when we get the final result
       };
 
-      recognition.onend = async () => {
-        if (isListening && transcript) {
-          await handleSubmit();
-        }
+      recognition.onend = () => {
+        setIsListening(false);
       };
 
       recognition.onerror = (event) => {
@@ -82,12 +79,12 @@ export const VoiceSubscriptionModal = ({
     }
   };
 
-  const handleSubmit = async () => {
-    if (!transcript || isProcessing) return;
+  const handleSubmit = async (transcriptText: string) => {
+    if (!transcriptText || isProcessing) return;
 
     try {
       setIsProcessing(true);
-      const subscriptionData = await processVoiceInput(transcript);
+      const subscriptionData = await processVoiceInput(transcriptText);
       await onSave(subscriptionData);
       speak("Subscription added successfully");
       setTranscript("");

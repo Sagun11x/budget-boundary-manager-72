@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { speak, processVoiceInput } from "@/utils/speechUtils";
@@ -27,7 +28,7 @@ export const VoiceSubscriptionModal = ({
 
   useEffect(() => {
     if (open) {
-      speak("Please describe your subscription");
+      speak("Please describe your subscription. For example, say: add Netflix for 30 days at 12 dollars");
     }
     return () => {
       if (recognition) {
@@ -53,6 +54,7 @@ export const VoiceSubscriptionModal = ({
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        speak("Sorry, there was an error with speech recognition. Please try again.");
       };
 
       setRecognition(recognition);
@@ -70,6 +72,7 @@ export const VoiceSubscriptionModal = ({
       setTranscript("");
       recognition.start();
       setIsListening(true);
+      speak("I'm listening");
     }
   };
 
@@ -89,9 +92,13 @@ export const VoiceSubscriptionModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add Subscription by Voice</DialogTitle>
+          <DialogDescription>
+            Click the microphone and describe your subscription.
+            For example: "add Netflix for 30 days at 12 dollars"
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="text-center">

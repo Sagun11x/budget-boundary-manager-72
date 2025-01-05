@@ -167,7 +167,10 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
                 placeholder="Number"
                 className="flex-1"
               />
-              <Select value={renewalUnit} onValueChange={setRenewalUnit}>
+              <Select 
+                value={renewalUnit} 
+                onValueChange={(value: "days" | "weeks" | "months" | "years") => setRenewalUnit(value)}
+              >
                 <SelectTrigger className="w-[110px]">
                   <SelectValue />
                 </SelectTrigger>

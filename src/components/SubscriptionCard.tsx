@@ -57,52 +57,56 @@ export const SubscriptionCard = ({
 
   return (
     <Card className="p-4 relative group">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          {subscription.logo ? (
-            <img 
-              src={subscription.logo} 
-              alt={`${subscription.name} logo`}
-              className="h-10 w-10 object-contain"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.svg";
-                e.currentTarget.onerror = null;
-              }}
-            />
-          ) : (
-            <Package className="h-10 w-10 text-gray-600" />
-          )}
-          <div className="flex flex-col items-start">
-            <div className="flex items-center gap-2">
+      <div className="flex flex-col h-full">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            {subscription.logo ? (
+              <img 
+                src={subscription.logo} 
+                alt={`${subscription.name} logo`}
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg";
+                  e.currentTarget.onerror = null;
+                }}
+              />
+            ) : (
+              <Package className="h-10 w-10 text-gray-600" />
+            )}
+            <div className="flex flex-col items-start">
               <h3 className="font-medium">{subscription.name}</h3>
-              <span className="text-gray-600">- ${cost.toFixed(2)}</span>
+              <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
+                {getDaysLeftText(daysLeft)}
+              </p>
             </div>
-            <p className={`text-sm ${getDaysLeftColor(daysLeft)}`}>
-              {getDaysLeftText(daysLeft)}
-            </p>
+          </div>
+          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit(subscription)}
+                className="h-8 w-8"
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDelete(subscription.id)}
+                className="h-8 w-8 text-red-500 hover:text-red-600"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onEdit && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(subscription)}
-              className="h-8 w-8"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(subscription.id)}
-              className="h-8 w-8 text-red-500 hover:text-red-600"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+        <div className="flex justify-end mt-2">
+          <span className="text-gray-600">
+            ${cost.toFixed(2)} {subscription.currency}
+          </span>
         </div>
       </div>
     </Card>

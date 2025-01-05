@@ -1,12 +1,17 @@
 import { Card } from "@/components/ui/card";
-import { addMonths, format, differenceInDays, addDays, addWeeks, addYears } from "date-fns";
+import { addMonths, format, differenceInDays, addDays, addWeeks, addYears, subMonths } from "date-fns";
 import type { Subscription } from "@/types/subscription";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useState } from "react";
+import { Button } from "./ui/button";
 
 interface AnalyticsProps {
   subscriptions: Subscription[];
 }
 
 export const Analytics = ({ subscriptions }: AnalyticsProps) => {
+  const [dateRange, setDateRange] = useState<number>(6); // Default to 6 months
+
   const calculateAnalytics = () => {
     const today = new Date();
     const monthlySpend = subscriptions.reduce((acc, sub) => acc + sub.cost, 0);
@@ -86,6 +91,28 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
     return `${Math.round(ratio)}%`;
   };
 
+  const getChartData = () => {
+    const data = [];
+    const today = new Date();
+    
+    for (let i = dateRange - 1; i >= 0; i--) {
+      const currentMonth = subMonths(today, i);
+      const monthTotal = subscriptions.reduce((acc, sub) => {
+        const startDate = new Date(sub.purchaseDate);
+        if (startDate <= currentMonth) {
+          return acc + sub.cost;
+        }
+        return acc;
+      }, 0);
+
+      data.push({
+        month: format(currentMonth, 'MMM yyyy'),
+        cost: monthTotal
+      });
+    }
+    return data;
+  };
+
   const analytics = calculateAnalytics();
 
   return (
@@ -110,7 +137,7 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
 
       <Card className="p-6">
         <h3 className="font-semibold text-lg mb-4">Upcoming Renewals</h3>
-        <div className="space-y-3">
+        <div className="space-y-3 min-h-[200px] max-h-[300px] overflow-y-auto">
           {analytics.upcomingRenewals.map(sub => (
             <div key={sub.id} className="border-b pb-2 last:border-0">
               <div className="flex items-center justify-between">
@@ -130,6 +157,48 @@ export const Analytics = ({ subscriptions }: AnalyticsProps) => {
           {analytics.upcomingRenewals.length === 0 && (
             <p className="text-sm text-gray-500">No upcoming renewals in the next month</p>
           )}
+        </div>
+      </Card>
+
+      <Card className="p-6 sm:col-span-2">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-lg">Subscription Cost Trend</h3>
+          <div className="space-x-2">
+            <Button
+              variant={dateRange === 3 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDateRange(3)}
+            >
+              3M
+            </Button>
+            <Button
+              variant={dateRange === 6 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDateRange(6)}
+            >
+              6M
+            </Button>
+            <Button
+              variant={dateRange === 12 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDateRange(12)}
+            >
+              12M
+            </Button>
+          </div>
+        </div>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={getChartData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost']}
+              />
+              <Bar dataKey="cost" fill="hsl(var(--primary))" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </Card>
     </div>

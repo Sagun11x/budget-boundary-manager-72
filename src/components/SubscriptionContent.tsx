@@ -147,6 +147,7 @@ export const SubscriptionContent = ({
         open={!!editingSubscription}
         onOpenChange={(open) => !open && setEditingSubscription(null)}
         onSave={handleEditSave}
+        isPro={isPro}
       />
 
       <ProFeatureAlert

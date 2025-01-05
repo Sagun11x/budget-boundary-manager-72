@@ -6,7 +6,6 @@ import { MessageCircle, X, Send, Info } from "lucide-react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { InfoModal } from "./InfoModal";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionBotProps {
   subscriptions: Array<{
@@ -17,111 +16,40 @@ interface SubscriptionBotProps {
       unit: string;
     };
   }>;
-  onSave?: (subscription: any) => Promise<void>;
 }
 
-export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps) => {
+export const SubscriptionBot = ({ subscriptions }: SubscriptionBotProps) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const isMobile = useIsMobile();
-  const { toast } = useToast();
-
-  const extractSubscriptionData = async (text: string) => {
-    try {
-      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-      const prompt = `Extract subscription information from this text: "${text}"
-        Return ONLY a JSON object with these fields (if found):
-        {
-          "name": "subscription name",
-          "cost": number (monthly cost),
-          "renewalPeriod": {
-            "number": number,
-            "unit": "months"
-          },
-          "description": "description if any",
-          "shouldAdd": boolean (true if this is a request to add a subscription)
-        }
-        If the text doesn't contain subscription information or isn't a request to add a subscription, set shouldAdd to false.
-        The text must explicitly mention adding or creating a subscription to set shouldAdd to true.
-        Example: For "Add Netflix subscription for $15.99 per month", return:
-        {
-          "name": "Netflix",
-          "cost": 15.99,
-          "renewalPeriod": {
-            "number": 1,
-            "unit": "months"
-          },
-          "description": "",
-          "shouldAdd": true
-        }`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const parsed = JSON.parse(response.text());
-      return parsed;
-    } catch (error) {
-      console.error("Error parsing subscription data:", error);
-      return { shouldAdd: false };
-    }
-  };
 
   const getSubscriptionContext = () => {
     const totalMonthly = subscriptions.reduce((acc, sub) => acc + sub.cost, 0);
     return `Current context: You have ${subscriptions.length} subscriptions with a total monthly cost of $${totalMonthly}. 
     The subscriptions are: ${subscriptions.map(sub => `${sub.name} ($${sub.cost}/month)`).join(", ")}.
-    If the user wants to add a subscription, extract the subscription details and add it.
-    Otherwise, provide a brief and focused response in 2-3 sentences maximum.`;
+    Please provide a brief and focused response in 2-3 sentences maximum.`;
   };
 
   const handleSendMessage = async () => {
     try {
       setIsLoading(true);
-      
-      // First, try to extract subscription data
-      const subscriptionData = await extractSubscriptionData(message);
-      console.log("Extracted subscription data:", subscriptionData);
-      
-      if (subscriptionData.shouldAdd && onSave) {
-        // If it's a subscription addition request and we have the onSave handler
-        await onSave({
-          ...subscriptionData,
-          currency: "USD",
-          purchaseDate: new Date().toISOString().split('T')[0],
-        });
-        
-        setResponse("I've added the subscription for you! Is there anything else you'd like to know?");
-        toast({
-          title: "Success",
-          description: `Added subscription: ${subscriptionData.name}`,
-        });
-      } else {
-        // Handle as a regular question
-        const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-        const context = getSubscriptionContext();
-        const prompt = `${context}\n\nUser question: ${message}\n\nPlease provide a helpful response about their subscriptions. If they ask about reducing costs, analyze their subscriptions and suggest specific ways to save money.`;
+      const context = getSubscriptionContext();
+      const prompt = `${context}\n\nUser question: ${message}\n\nPlease provide a helpful response about their subscriptions. If they ask about reducing costs, analyze their subscriptions and suggest specific ways to save money.`;
 
-        const result = await model.generateContent(prompt);
-        const apiResponse = await result.response;
-        setResponse(apiResponse.text());
-      }
+      const result = await model.generateContent(prompt);
+      const apiResponse = await result.response;
+      setResponse(apiResponse.text());
     } catch (error) {
       console.error("Error generating response:", error);
       setResponse("Sorry, I encountered an error. Please try again later.");
-      toast({
-        title: "Error",
-        description: "Failed to process your request",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
-      setMessage("");
     }
   };
 
@@ -177,7 +105,7 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Ask about your subscriptions or add new ones..."
+                placeholder="Ask about your subscriptions..."
                 className="min-h-[80px]"
               />
               <Button 

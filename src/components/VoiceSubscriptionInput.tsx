@@ -35,11 +35,14 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
           question = "Could you please provide more details about the subscription?";
       }
 
+      console.log('Asking follow-up question:', question);
       toast({
         title: "Missing Information",
         description: question,
       });
-      speak(question);
+      
+      // Ensure we speak the question
+      await speak(question);
 
       const { startListening } = useVoiceRecognition((answer) => {
         processFollowUpResponse(answer, missingField, currentData);
@@ -75,17 +78,23 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
         await askFollowUpQuestion(nextMissingField, updatedData);
       } else {
         const confirmMessage = `Add ${updatedData.name} for $${updatedData.cost} per ${updatedData.renewalNumber} ${updatedData.renewalUnit}?`;
+        console.log('Confirming subscription:', confirmMessage);
+        
         toast({
           title: "Confirm Subscription",
           description: confirmMessage,
         });
-        speak(confirmMessage);
         
-        setTimeout(() => {
+        // Ensure we speak the confirmation
+        await speak(confirmMessage);
+        
+        setTimeout(async () => {
           onSubscriptionData(updatedData);
           setPendingSubscription(null);
           setIsProcessing(false);
-          speak(`Successfully added ${updatedData.name} subscription`);
+          const successMessage = `Successfully added ${updatedData.name} subscription`;
+          console.log(successMessage);
+          await speak(successMessage);
         }, 3000);
       }
     } catch (error) {

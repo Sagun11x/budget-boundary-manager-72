@@ -25,6 +25,7 @@ export const VoiceSubscriptionModal = ({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -51,6 +52,12 @@ export const VoiceSubscriptionModal = ({
         setTranscript(transcript);
       };
 
+      recognition.onend = async () => {
+        if (isListening && transcript) {
+          await handleSubmit();
+        }
+      };
+
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
@@ -67,7 +74,6 @@ export const VoiceSubscriptionModal = ({
     if (isListening) {
       recognition.stop();
       setIsListening(false);
-      handleSubmit();
     } else {
       setTranscript("");
       recognition.start();
@@ -77,16 +83,21 @@ export const VoiceSubscriptionModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!transcript) return;
+    if (!transcript || isProcessing) return;
 
     try {
+      setIsProcessing(true);
       const subscriptionData = await processVoiceInput(transcript);
       await onSave(subscriptionData);
       speak("Subscription added successfully");
+      setTranscript("");
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving subscription:', error);
       speak("Sorry, I couldn't process that. Please try again.");
+    } finally {
+      setIsProcessing(false);
+      setIsListening(false);
     }
   };
 
@@ -107,6 +118,7 @@ export const VoiceSubscriptionModal = ({
               variant={isListening ? "destructive" : "default"}
               size="lg"
               className="rounded-full p-6"
+              disabled={isProcessing}
             >
               {isListening ? (
                 <MicOff className="h-6 w-6" />
@@ -118,6 +130,11 @@ export const VoiceSubscriptionModal = ({
           {transcript && (
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm">{transcript}</p>
+            </div>
+          )}
+          {isProcessing && (
+            <div className="text-center text-sm text-muted-foreground">
+              Processing your request...
             </div>
           )}
         </div>

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Mic, StopCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Subscription } from "@/types/subscription";
+import { processVoiceInput } from "@/utils/speechUtils";
+import { speak } from "@/utils/speechUtils";
 
 interface VoiceSubscriptionInputProps {
   open: boolean;
@@ -21,13 +23,13 @@ export function VoiceSubscriptionInput({ open, onOpenChange, onSave }: VoiceSubs
     recognition.continuous = true;
     recognition.interimResults = true;
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const current = event.resultIndex;
       const transcript = event.results[current][0].transcript;
       setTranscript(transcript);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event);
       toast({
         title: "Error",

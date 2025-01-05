@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff } from "lucide-react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { speak } from "@/utils/speechUtils";
+import { processWithGemini } from "@/utils/geminiUtils";
+import { useVoiceRecognition } from "@/hooks/useVoiceRecognition";
 
 interface VoiceSubscriptionInputProps {
   onSubscriptionData: (data: {
@@ -14,7 +16,6 @@ interface VoiceSubscriptionInputProps {
 }
 
 export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscriptionInputProps) {
-  const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingSubscription, setPendingSubscription] = useState<any>(null);
   const { toast } = useToast();
@@ -22,9 +23,6 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
   const askFollowUpQuestion = async (missingField: string, currentData: any) => {
     try {
       setIsProcessing(true);
-      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
       let question = "";
       switch (missingField) {
         case "cost":
@@ -41,35 +39,13 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
         title: "Missing Information",
         description: question,
       });
+      speak(question);
 
-      // Start listening for the answer
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const answer = event.results[0][0].transcript;
+      const { startListening } = useVoiceRecognition((answer) => {
         processFollowUpResponse(answer, missingField, currentData);
-      };
+      });
 
-      recognition.onerror = (event: SpeechRecognitionEvent) => {
-        console.error('Speech recognition error:', event.error);
-        toast({
-          title: "Error",
-          description: "There was an error with the voice input. Please try again.",
-          variant: "destructive",
-        });
-        setIsProcessing(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      recognition.start();
-      setIsListening(true);
+      startListening();
     } catch (error) {
       console.error('Error in follow-up question:', error);
       setIsProcessing(false);
@@ -78,17 +54,12 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
 
   const processFollowUpResponse = async (answer: string, missingField: string, currentData: any) => {
     try {
-      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
       const prompt = `Extract the ${missingField} information from this answer: "${answer}"
         For cost, return just the number.
         For period, return in format: "number unit" (e.g., "1 month" or "3 months")
         Only respond with the extracted value, nothing else.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const extractedValue = response.text().trim();
+      const extractedValue = await processWithGemini(prompt);
 
       const updatedData = { ...currentData };
       if (missingField === "cost") {
@@ -103,17 +74,18 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
         const nextMissingField = !updatedData.cost ? "cost" : "period";
         await askFollowUpQuestion(nextMissingField, updatedData);
       } else {
-        // All information is complete
+        const confirmMessage = `Add ${updatedData.name} for $${updatedData.cost} per ${updatedData.renewalNumber} ${updatedData.renewalUnit}?`;
         toast({
           title: "Confirm Subscription",
-          description: `Add ${updatedData.name} for $${updatedData.cost} per ${updatedData.renewalNumber} ${updatedData.renewalUnit}?`,
+          description: confirmMessage,
         });
+        speak(confirmMessage);
         
-        // Wait for 3 seconds for user to see the confirmation
         setTimeout(() => {
           onSubscriptionData(updatedData);
           setPendingSubscription(null);
           setIsProcessing(false);
+          speak(`Successfully added ${updatedData.name} subscription`);
         }, 3000);
       }
     } catch (error) {
@@ -125,9 +97,6 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
   const processVoiceInput = async (text: string) => {
     try {
       setIsProcessing(true);
-      const genAI = new GoogleGenerativeAI("AIzaSyAJj4ifQOwD-sXWt_tyje6yZZirZr6y-Rg");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
       const prompt = `Extract subscription information from this text: "${text}"
         Format the response exactly like this example:
         {
@@ -137,9 +106,7 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
         }
         Only respond with the JSON object, nothing else.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const jsonStr = response.text();
+      const jsonStr = await processWithGemini(prompt);
       
       try {
         const data = JSON.parse(jsonStr);
@@ -153,23 +120,23 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
 
         setPendingSubscription(subscriptionData);
 
-        // Check for missing information
         if (!data.cost) {
           await askFollowUpQuestion("cost", subscriptionData);
         } else if (!data.period) {
           await askFollowUpQuestion("period", subscriptionData);
         } else {
-          // All information is present
+          const confirmMessage = `Add ${data.name} for $${data.cost} per ${data.period}?`;
           toast({
             title: "Confirm Subscription",
-            description: `Add ${data.name} for $${data.cost} per ${data.period}?`,
+            description: confirmMessage,
           });
+          speak(confirmMessage);
           
-          // Wait for 3 seconds for user to see the confirmation
           setTimeout(() => {
             onSubscriptionData(subscriptionData);
             setPendingSubscription(null);
             setIsProcessing(false);
+            speak(`Successfully added ${data.name} subscription`);
           }, 3000);
         }
       } catch (parseError) {
@@ -192,64 +159,14 @@ export function VoiceSubscriptionInput({ onSubscriptionData }: VoiceSubscription
     }
   };
 
-  const handleVoiceInput = async () => {
-    try {
-      if (!isListening && !isProcessing) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-          throw new Error('Speech recognition not supported');
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
-          const transcript = event.results[0][0].transcript;
-          processVoiceInput(transcript);
-        };
-
-        recognition.onerror = (event: SpeechRecognitionEvent) => {
-          console.error('Speech recognition error:', event.error);
-          toast({
-            title: "Error",
-            description: "There was an error with the voice input. Please try again.",
-            variant: "destructive",
-          });
-          setIsListening(false);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        recognition.start();
-        setIsListening(true);
-        toast({
-          title: "Listening",
-          description: "Speak your subscription details...",
-        });
-      } else {
-        setIsListening(false);
-      }
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast({
-        title: "Error",
-        description: "Could not access microphone. Please check your permissions.",
-        variant: "destructive",
-      });
-      setIsListening(false);
-    }
-  };
+  const { isListening, startListening } = useVoiceRecognition(processVoiceInput);
 
   return (
     <div className="flex items-center justify-center p-2">
       <Button
         type="button"
         variant={isListening ? "destructive" : "secondary"}
-        onClick={handleVoiceInput}
+        onClick={startListening}
         disabled={isProcessing}
         className="flex items-center gap-2"
       >

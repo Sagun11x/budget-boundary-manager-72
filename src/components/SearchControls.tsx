@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,7 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { VoiceSubscriptionInput } from "./VoiceSubscriptionInput";
 
 interface SearchControlsProps {
   searchTerm: string;
@@ -28,6 +36,7 @@ export const SearchControls = ({
   hideSortBy = false,
 }: SearchControlsProps) => {
   const isMobile = useIsMobile();
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   return (
     <div className="space-y-4 md:space-y-0">
@@ -42,13 +51,24 @@ export const SearchControls = ({
             className="pl-10"
           />
         </div>
-        <Button 
-          onClick={onAddClick} 
-          className="whitespace-nowrap md:w-[20%] w-[20%]"
-        >
-          <Plus className="h-4 w-4 md:mr-2" />
-          {!isMobile && "Add Subscription"}
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="whitespace-nowrap md:w-[20%] w-[20%]">
+              <Plus className="h-4 w-4 md:mr-2" />
+              {!isMobile && "Add Subscription"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={onAddClick}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Manually
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowVoiceModal(true)}>
+              <Mic className="mr-2 h-4 w-4" />
+              Add by Voice
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {!hideSortBy && (
           <div className="w-full md:w-[20%]">
             <Select value={sortBy} onValueChange={setSortBy}>
@@ -64,6 +84,11 @@ export const SearchControls = ({
           </div>
         )}
       </div>
+      <VoiceSubscriptionInput
+        open={showVoiceModal}
+        onOpenChange={setShowVoiceModal}
+        onSave={onAddClick}
+      />
     </div>
   );
 };

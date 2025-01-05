@@ -21,7 +21,7 @@ export const useVoiceRecognition = (onResult: (text: string) => void) => {
         onResult(transcript);
       };
 
-      recognition.onerror = (event: SpeechRecognitionEvent) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
         toast({
           title: "Error",

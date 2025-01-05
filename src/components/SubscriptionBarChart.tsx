@@ -19,7 +19,7 @@ export const SubscriptionBarChart = ({ subscriptions, dateRange, setDateRange }:
   return (
     <Card className="p-6 sm:col-span-2">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg">Subscription Cost Trend</h3>
+        <h3 className="font-semibold text-lg">Total Duration Cost</h3>
         <div className="space-x-2">
           <Button
             variant={dateRange === 3 ? "default" : "outline"}
@@ -51,7 +51,7 @@ export const SubscriptionBarChart = ({ subscriptions, dateRange, setDateRange }:
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip 
-              formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, name]}
+              formatter={(value: number, name: string) => [`$${value.toFixed(2)}`, `${name} Duration`]}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
@@ -59,7 +59,7 @@ export const SubscriptionBarChart = ({ subscriptions, dateRange, setDateRange }:
                       <p className="font-semibold">{label}</p>
                       {payload.map((entry: any, index: number) => (
                         <div key={index} className="flex justify-between gap-4">
-                          <span style={{ color: entry.color }}>{entry.name}:</span>
+                          <span style={{ color: entry.color }}>{entry.name} Duration:</span>
                           <span>${entry.value.toFixed(2)}</span>
                         </div>
                       ))}
@@ -69,7 +69,7 @@ export const SubscriptionBarChart = ({ subscriptions, dateRange, setDateRange }:
                 return null;
               }}
             />
-            <Legend />
+            <Legend formatter={(value) => `${value} Duration`} />
             {uniqueSubscriptions.map((name, index) => (
               <Bar
                 key={name}

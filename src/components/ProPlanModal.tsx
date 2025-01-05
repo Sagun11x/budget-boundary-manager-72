@@ -47,13 +47,13 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
       
       toast({
         title: "Success",
-        description: "Subscription request submitted successfully! Admin will review shortly.",
+        description: "Duration request submitted successfully! Admin will review shortly.",
       });
       onOpenChange(false);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit subscription request. Please try again.",
+        description: "Failed to submit duration request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -83,7 +83,7 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             <Brain className="w-6 h-6" />
           </DialogTitle>
           <DialogDescription id="pro-plan-description">
-            Choose your subscription plan and unlock premium features
+            Choose your duration plan and unlock premium features
           </DialogDescription>
         </DialogHeader>
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -155,7 +155,7 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             onClick={handlePurchase}
             disabled={isSubmitting}
           >
-            <span>{isSubmitting ? 'Processing...' : 'Request Subscription'}</span>
+            <span>{isSubmitting ? 'Processing...' : 'Request Duration'}</span>
             <MessageSquare className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Button>
         </div>

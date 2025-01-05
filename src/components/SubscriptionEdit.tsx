@@ -6,27 +6,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import type { Subscription } from "@/types/subscription";
+import { LogoPreview } from "./LogoPreview";
+import { AdvancedOptions } from "./AdvancedOptions";
 
 interface SubscriptionEditProps {
   subscription: Subscription | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (subscription: Subscription) => void;
+  isPro?: boolean;
 }
 
-export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: SubscriptionEditProps) {
+export function SubscriptionEdit({ subscription, open, onOpenChange, onSave, isPro = false }: SubscriptionEditProps) {
   const [name, setName] = useState(subscription?.name || "");
   const [logo, setLogo] = useState(subscription?.logo || "");
+  const [customLogoUrl, setCustomLogoUrl] = useState(subscription?.logo || "");
   const [cost, setCost] = useState(subscription?.cost.toString() || "");
   const [description, setDescription] = useState(subscription?.description || "");
   const [purchaseDate, setPurchaseDate] = useState(subscription?.purchaseDate || new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState(subscription?.renewalPeriod.number.toString() || "");
   const [renewalUnit, setRenewalUnit] = useState<"days" | "weeks" | "months" | "years">(subscription?.renewalPeriod.unit || "months");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (subscription) {
       setName(subscription.name);
       setLogo(subscription.logo || "");
+      setCustomLogoUrl(subscription.logo || "");
       setCost(subscription.cost.toString());
       setDescription(subscription.description || "");
       setPurchaseDate(subscription.purchaseDate);
@@ -53,10 +59,8 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
     onOpenChange(false);
   };
 
-  const handleRenewalUnitChange = (value: string) => {
-    if (value === "days" || value === "weeks" || value === "months" || value === "years") {
-      setRenewalUnit(value);
-    }
+  const handleRenewalUnitChange = (value: "days" | "weeks" | "months" | "years") => {
+    setRenewalUnit(value);
   };
 
   return (
@@ -77,7 +81,19 @@ export function SubscriptionEdit({ subscription, open, onOpenChange, onSave }: S
               onChange={(e) => setName(e.target.value)}
               placeholder="Subscription Name"
             />
+            {name && <LogoPreview name={name} logo={customLogoUrl || logo} />}
           </div>
+
+          {isPro && (
+            <AdvancedOptions
+              showAdvanced={showAdvanced}
+              setShowAdvanced={setShowAdvanced}
+              customLogoUrl={customLogoUrl}
+              setCustomLogoUrl={setCustomLogoUrl}
+              setLogo={setLogo}
+            />
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>
             <Input

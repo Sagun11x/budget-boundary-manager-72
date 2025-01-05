@@ -4,6 +4,7 @@ import { SubscriptionList } from "@/components/SubscriptionList";
 import { SubscriptionModal } from "@/components/ui/subscription-modal";
 import { SubscriptionEdit } from "@/components/SubscriptionEdit";
 import { ProFeatureAlert } from "@/components/ProFeatureAlert";
+import { SubscriptionBot } from "@/components/SubscriptionBot";
 import { addDays, addMonths, addWeeks, addYears } from "date-fns";
 import type { Subscription } from "@/types/subscription";
 
@@ -156,6 +157,8 @@ export const SubscriptionContent = ({
         title="Subscription Limit Reached"
         description="Free users can only add up to 5 subscriptions. Upgrade to Pro for unlimited subscriptions!"
       />
+
+      {isPro && <SubscriptionBot subscriptions={subscriptions} onSave={onSave} />}
     </div>
   );
 };

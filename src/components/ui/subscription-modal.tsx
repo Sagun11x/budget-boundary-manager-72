@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { LogoPreview } from "@/components/LogoPreview";
 import { AdvancedOptions } from "@/components/AdvancedOptions";
+import { VoiceSubscriptionInput } from "@/components/VoiceSubscriptionInput";
 import type { Subscription } from "@/types/subscription";
 
 interface SubscriptionModalProps {
@@ -76,6 +77,22 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
     }
   };
 
+  const handleVoiceInput = (data: {
+    name: string;
+    cost: string;
+    renewalNumber: string;
+    renewalUnit: "days" | "weeks" | "months" | "years";
+  }) => {
+    handleNameChange(data.name);
+    setCost(data.cost);
+    setRenewalNumber(data.renewalNumber);
+    setRenewalUnit(data.renewalUnit);
+    toast({
+      title: "Success",
+      description: "Voice input processed successfully!",
+    });
+  };
+
   const handleSave = () => {
     if (!name || !cost || !renewalNumber || !renewalUnit) {
       toast({
@@ -120,6 +137,8 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
           <DialogTitle>Add New Subscription</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <VoiceSubscriptionInput onSubscriptionData={handleVoiceInput} />
+          
           <div className="grid gap-2">
             <Label htmlFor="name">Subscription Name</Label>
             <Input
@@ -206,7 +225,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               </Select>
             </div>
           </div>
-
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="destructive" onClick={() => onOpenChange(false)}>

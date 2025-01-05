@@ -12,11 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { LogoPreview } from "@/components/LogoPreview";
 import { AdvancedOptions } from "@/components/AdvancedOptions";
+import type { Subscription } from "@/types/subscription";
 
 interface SubscriptionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (subscription: any) => void;
+  onSave: (subscription: Omit<Subscription, 'id' | 'userId'>) => void;
   isPro?: boolean;
 }
 
@@ -27,7 +28,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
   const [cost, setCost] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState("");
-  const [renewalUnit, setRenewalUnit] = useState("days");
+  const [renewalUnit, setRenewalUnit] = useState<"days" | "weeks" | "months" | "years">("days");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const { toast } = useToast();
 
@@ -126,6 +127,17 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
             />
             {name && <LogoPreview name={name} logo={customLogoUrl || logo} />}
           </div>
+
+          {isPro && (
+            <AdvancedOptions
+              showAdvanced={showAdvanced}
+              setShowAdvanced={setShowAdvanced}
+              customLogoUrl={customLogoUrl}
+              setCustomLogoUrl={setCustomLogoUrl}
+              setLogo={setLogo}
+            />
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>
             <Input
@@ -168,15 +180,6 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               </Select>
             </div>
           </div>
-          {isPro && (
-            <AdvancedOptions
-              showAdvanced={showAdvanced}
-              setShowAdvanced={setShowAdvanced}
-              customLogoUrl={customLogoUrl}
-              setCustomLogoUrl={setCustomLogoUrl}
-              setLogo={setLogo}
-            />
-          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="destructive" onClick={() => onOpenChange(false)}>

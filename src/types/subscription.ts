@@ -3,6 +3,7 @@ export interface Subscription {
   name: string;
   logo?: string;
   cost: number;
+  currency: string;
   purchaseDate: string;
   renewalPeriod: {
     number: number;

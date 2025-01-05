@@ -26,6 +26,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
   const [logo, setLogo] = useState("");
   const [customLogoUrl, setCustomLogoUrl] = useState("");
   const [cost, setCost] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
   const [renewalNumber, setRenewalNumber] = useState("");
   const [renewalUnit, setRenewalUnit] = useState<"days" | "weeks" | "months" | "years">("days");
@@ -89,6 +90,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
       name,
       logo: customLogoUrl || logo,
       cost: parseFloat(cost),
+      currency,
       purchaseDate,
       renewalPeriod: {
         number: parseInt(renewalNumber),
@@ -104,6 +106,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
     setLogo("");
     setCustomLogoUrl("");
     setCost("");
+    setCurrency("USD");
     setPurchaseDate(new Date().toISOString().split('T')[0]);
     setRenewalNumber("");
     setRenewalUnit("days");
@@ -140,14 +143,34 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
 
           <div className="grid gap-2">
             <Label htmlFor="cost">Cost</Label>
-            <Input
-              id="cost"
-              type="number"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              placeholder="Cost in USD"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="cost"
+                type="number"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="Cost"
+                className="flex-1"
+              />
+              <Select value={currency} onValueChange={(value: string) => setCurrency(value)}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="EUR">EUR</SelectItem>
+                  <SelectItem value="GBP">GBP</SelectItem>
+                  <SelectItem value="JPY">JPY</SelectItem>
+                  <SelectItem value="AUD">AUD</SelectItem>
+                  <SelectItem value="CAD">CAD</SelectItem>
+                  <SelectItem value="CHF">CHF</SelectItem>
+                  <SelectItem value="CNY">CNY</SelectItem>
+                  <SelectItem value="INR">INR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="purchaseDate">Purchase Date</Label>
             <Input
@@ -183,6 +206,7 @@ export function SubscriptionModal({ open, onOpenChange, onSave, isPro = false }:
               </Select>
             </div>
           </div>
+
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="destructive" onClick={() => onOpenChange(false)}>

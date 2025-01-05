@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { speak, processVoiceInput } from "@/utils/speechUtils";
@@ -26,6 +27,7 @@ export const VoiceSubscriptionModal = ({
   const [transcript, setTranscript] = useState("");
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingSubscription, setPendingSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -42,13 +44,13 @@ export const VoiceSubscriptionModal = ({
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.continuous = false; // Changed to false to ensure we get one complete utterance
-      recognition.interimResults = false; // Changed to false to get only final results
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
       recognition.onresult = (event) => {
         const finalTranscript = event.results[0][0].transcript;
         setTranscript(finalTranscript);
-        handleSubmit(finalTranscript); // Automatically process when we get the final result
+        handleVoiceInput(finalTranscript);
       };
 
       recognition.onend = () => {
@@ -73,28 +75,45 @@ export const VoiceSubscriptionModal = ({
       setIsListening(false);
     } else {
       setTranscript("");
+      setPendingSubscription(null);
       recognition.start();
       setIsListening(true);
       speak("I'm listening");
     }
   };
 
-  const handleSubmit = async (transcriptText: string) => {
+  const handleVoiceInput = async (transcriptText: string) => {
     if (!transcriptText || isProcessing) return;
 
     try {
       setIsProcessing(true);
       const subscriptionData = await processVoiceInput(transcriptText);
-      await onSave(subscriptionData);
-      speak("Subscription added successfully");
-      setTranscript("");
-      onOpenChange(false);
+      setPendingSubscription(subscriptionData);
+      
+      // Speak confirmation message
+      const confirmationMessage = `You want to add ${subscriptionData.name} for $${subscriptionData.cost} for the next ${subscriptionData.renewalPeriod.number} ${subscriptionData.renewalPeriod.unit}, right?`;
+      speak(confirmationMessage);
     } catch (error) {
-      console.error('Error saving subscription:', error);
+      console.error('Error processing voice input:', error);
       speak("Sorry, I couldn't process that. Please try again.");
     } finally {
       setIsProcessing(false);
       setIsListening(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingSubscription) return;
+
+    try {
+      await onSave(pendingSubscription);
+      speak("Subscription added successfully");
+      setTranscript("");
+      setPendingSubscription(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving subscription:', error);
+      speak("Sorry, there was an error saving the subscription. Please try again.");
     }
   };
 
@@ -115,7 +134,7 @@ export const VoiceSubscriptionModal = ({
               variant={isListening ? "destructive" : "default"}
               size="lg"
               className="rounded-full p-6"
-              disabled={isProcessing}
+              disabled={isProcessing || !!pendingSubscription}
             >
               {isListening ? (
                 <MicOff className="h-6 w-6" />
@@ -133,6 +152,13 @@ export const VoiceSubscriptionModal = ({
             <div className="text-center text-sm text-muted-foreground">
               Processing your request...
             </div>
+          )}
+          {pendingSubscription && (
+            <DialogFooter>
+              <Button onClick={handleConfirm} className="w-full">
+                Confirm and Add Subscription
+              </Button>
+            </DialogFooter>
           )}
         </div>
       </DialogContent>

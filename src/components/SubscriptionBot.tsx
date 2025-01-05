@@ -46,7 +46,18 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
           "description": "description if any",
           "shouldAdd": boolean (true if this is a request to add a subscription)
         }
-        If the text doesn't contain subscription information or isn't a request to add a subscription, set shouldAdd to false.`;
+        If the text doesn't contain subscription information or isn't a request to add a subscription, set shouldAdd to false.
+        Example: For "Add Netflix subscription for $15.99 per month", return:
+        {
+          "name": "Netflix",
+          "cost": 15.99,
+          "renewalPeriod": {
+            "number": 1,
+            "unit": "months"
+          },
+          "description": "",
+          "shouldAdd": true
+        }`;
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -71,6 +82,7 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
       
       // First, try to extract subscription data
       const subscriptionData = await extractSubscriptionData(message);
+      console.log("Extracted subscription data:", subscriptionData);
       
       if (subscriptionData.shouldAdd && onSave) {
         // If it's a subscription addition request and we have the onSave handler
@@ -106,6 +118,7 @@ export const SubscriptionBot = ({ subscriptions, onSave }: SubscriptionBotProps)
       });
     } finally {
       setIsLoading(false);
+      setMessage("");
     }
   };
 

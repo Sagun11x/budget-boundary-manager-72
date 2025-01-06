@@ -110,7 +110,6 @@ export const SubscriptionContent = ({
           sortBy={sortBy}
           setSortBy={setSortBy}
           onAddClick={handleAddClick}
-          onSave={onSave}
         />
       </div>
       <div className="md:hidden">
@@ -120,7 +119,6 @@ export const SubscriptionContent = ({
           sortBy={sortBy}
           setSortBy={() => {}}
           onAddClick={handleAddClick}
-          onSave={onSave}
           hideSortBy
         />
       </div>

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
-import { Check, Sparkles, Bot, Brain, MessageSquare } from "lucide-react";
+import { Check, MessageSquare } from "lucide-react";
 import { subscriptionService } from "@/services/subscriptionService";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -74,10 +74,8 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]" aria-describedby="pro-plan-description">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-4 flex items-center justify-center gap-2">
-            <Bot className="w-6 h-6" />
-            <span>Pro + AI</span>
-            <Brain className="w-6 h-6" />
+          <DialogTitle className="text-2xl font-bold text-center mb-4">
+            GoPro
           </DialogTitle>
           <DialogDescription id="pro-plan-description">
             Limited Time Offer - Lifetime Access

@@ -6,7 +6,6 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
@@ -22,9 +21,8 @@ interface ProPlanModalProps {
 export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isLifetime, setIsLifetime] = useState(false);
-  const [isHovered, setIsHovered] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isHovered, setIsHovered] = useState<number | null>(null);
 
   const handlePurchase = async () => {
     if (!user) {
@@ -38,22 +36,21 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
 
     setIsSubmitting(true);
     try {
-      const planType = isLifetime ? 'lifetime' : '6-month';
       await subscriptionService.requestSubscription(
         user.uid,
         user.email || '',
-        planType
+        'lifetime'
       );
       
       toast({
         title: "Success",
-        description: "Duration request submitted successfully! Admin will review shortly.",
+        description: "Lifetime subscription request submitted successfully! Admin will review shortly.",
       });
       onOpenChange(false);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to submit duration request. Please try again.",
+        description: "Failed to submit subscription request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -69,9 +66,9 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
     "Advanced Analytics"
   ];
 
-  const regularPrice = isLifetime ? 149 : 49;
-  const discountedPrice = isLifetime ? 49 : 29;
-  const savings = regularPrice - discountedPrice;
+  const price = 49.99;
+  const regularPrice = 9999;
+  const savings = regularPrice - price;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,32 +80,19 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             <Brain className="w-6 h-6" />
           </DialogTitle>
           <DialogDescription id="pro-plan-description">
-            Choose your duration plan and unlock premium features
+            Limited Time Offer - Lifetime Access
           </DialogDescription>
         </DialogHeader>
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <div className="flex justify-between items-center mb-6">
-            <span className={`text-sm transition-colors duration-200 ${!isLifetime ? 'text-primary font-semibold' : 'text-gray-500'}`}>
-              6 Months
-            </span>
-            <Switch
-              checked={isLifetime}
-              onCheckedChange={setIsLifetime}
-            />
-            <span className={`text-sm transition-colors duration-200 ${isLifetime ? 'text-primary font-semibold' : 'text-gray-500'}`}>
-              Lifetime
-            </span>
-          </div>
-
           <motion.div 
             className="text-center mb-6"
             initial={{ scale: 1 }}
-            animate={{ scale: isLifetime ? [1, 1.1, 1] : 1 }}
+            animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center justify-center gap-2">
               <p className="text-4xl font-bold">
-                ${discountedPrice}
+                ${price}
               </p>
               <span className="text-sm text-gray-500 line-through">
                 ${regularPrice}
@@ -118,13 +102,11 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
               You save ${savings}! 🎉
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              {isLifetime ? "One-time payment" : "Every 6 months"}
+              One-time payment
             </p>
-            {isLifetime && (
-              <p className="text-xs text-primary mt-2 bg-primary/5 p-2 rounded-lg">
-                Limited time offer! Get lifetime access at 67% off
-              </p>
-            )}
+            <p className="text-xs text-primary mt-2 bg-primary/5 p-2 rounded-lg">
+              Limited time offer! Get lifetime access at an incredible discount
+            </p>
           </motion.div>
 
           <div className="space-y-3 mb-6">
@@ -155,7 +137,7 @@ export function ProPlanModal({ open, onOpenChange }: ProPlanModalProps) {
             onClick={handlePurchase}
             disabled={isSubmitting}
           >
-            <span>{isSubmitting ? 'Processing...' : 'Request Duration'}</span>
+            <span>{isSubmitting ? 'Processing...' : 'Get Lifetime Access'}</span>
             <MessageSquare className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Button>
         </div>
